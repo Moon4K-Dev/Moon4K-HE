@@ -25,7 +25,8 @@
     },
     "gameConfig": {
         "downscroll": false,
-        "ghostTapping": false
+        "ghostTapping": false,
+        "noteskin": "default"
     },
     "songConfig": {
         "songName": "cheatreal",

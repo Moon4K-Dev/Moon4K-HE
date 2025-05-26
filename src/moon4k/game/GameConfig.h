@@ -9,6 +9,7 @@ private:
     nlohmann::json config;
     bool downscroll;
     bool ghostTapping;
+    std::string noteskin;
 
     GameConfig();
     void loadConfig();
@@ -18,8 +19,10 @@ public:
     
     bool isDownscroll() const { return downscroll; }
     bool isGhostTapping() const { return ghostTapping; }
+    std::string getNoteskin() const { return noteskin; }
     
     void setDownscroll(bool value);
     void setGhostTapping(bool value);
+    void setNoteskin(const std::string& value);
     void saveConfig();
 }; 

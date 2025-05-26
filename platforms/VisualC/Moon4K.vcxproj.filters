@@ -28,6 +28,9 @@
     <Filter Include="Source Files\moon4k\game">
       <UniqueIdentifier>{ca4eb8be-3bde-4072-b1f7-bacd0b171418}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\moon4k\ui">
+      <UniqueIdentifier>{b5cb5d9e-0aee-4477-8bfe-d6d5dd37dca2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp">
@@ -110,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\moon4k\game\Song.cpp">
       <Filter>Source Files\moon4k\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\ui\StrumNote.cpp">
+      <Filter>Source Files\moon4k\ui</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

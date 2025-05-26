@@ -29,9 +29,11 @@ void GameConfig::loadConfig() {
             auto& gameConfig = config["gameConfig"];
             downscroll = gameConfig.value("downscroll", false);
             ghostTapping = gameConfig.value("ghostTapping", false);
+            noteskin = gameConfig.value("noteskin", "default");
         } else {
             downscroll = false;
             ghostTapping = false;
+            noteskin = "default";
         }
     } catch (const std::exception& e) {
         Log::getInstance().error("Error parsing config.json: " + std::string(e.what()));
@@ -47,6 +49,12 @@ void GameConfig::setDownscroll(bool value) {
 void GameConfig::setGhostTapping(bool value) {
     ghostTapping = value;
     config["gameConfig"]["ghostTapping"] = value;
+    saveConfig();
+}
+
+void GameConfig::setNoteskin(const std::string& value) {
+    noteskin = value;
+    config["gameConfig"]["noteskin"] = value;
     saveConfig();
 }
 

@@ -186,10 +186,9 @@ void PlayState::update(float deltaTime) {
 
 void PlayState::handleInput() {
     for (size_t i = 0; i < 4; i++) {
-        size_t arrowIndex = i + 4;
-        if (arrowIndex < strumLineNotes.size() && strumLineNotes[arrowIndex]) {
+        if (i < strumLineNotes.size() && strumLineNotes[i]) {
             if (isKeyJustPressed(static_cast<int>(i)) || isNXButtonJustPressed(static_cast<int>(i))) {
-                strumLineNotes[arrowIndex]->playAnimation("pressed");
+                strumLineNotes[i]->playAnimation("press");
                 
                 bool noteHit = false;
                 for (auto note : notes) {
@@ -209,7 +208,7 @@ void PlayState::handleInput() {
                 }
             }
             else if (isKeyJustReleased(static_cast<int>(i)) || isNXButtonJustReleased(static_cast<int>(i))) {
-                strumLineNotes[arrowIndex]->playAnimation("static");
+                strumLineNotes[i]->playAnimation("static");
             }
         }
     }
@@ -287,9 +286,26 @@ void PlayState::startSong() {
 
 void PlayState::startCountdown() {
     startedCountdown = true;
+    Conductor::songPosition = 0;
+    Conductor::songPosition -= Conductor::crochet * 5;
 
-    generateStaticArrows(0);
-    generateStaticArrows(1);
+    int windowWidth = Engine::getInstance()->getWindowWidth();
+    int windowHeight = Engine::getInstance()->getWindowHeight();
+    
+    float yPos = GameConfig::getInstance()->isDownscroll() ? (windowHeight - 150.0f) : 100.0f;
+    yPos -= 20;
+    
+    float totalWidth = laneOffset * (keyCount - 1);
+    float startX = (windowWidth - totalWidth) / 2.0f;
+    
+    for (int i = 0; i < keyCount; i++) {
+        std::string noteskin = GameConfig::getInstance()->getNoteskin();
+        StrumNote* babyArrow = new StrumNote(0, yPos, i, noteskin, keyCount);
+        
+        float x = startX + (i * laneOffset);
+        babyArrow->setPosition(x, yPos);
+        strumLineNotes.push_back(babyArrow);
+    }
 }
 
 void PlayState::render() {
@@ -315,45 +331,6 @@ void PlayState::render() {
 
     if (!_subStates.empty()) {
         _subStates.back()->render();
-    }
-}
-
-void PlayState::generateStaticArrows(int player) {
-    int windowWidth, windowHeight;
-    SDL_GetWindowSize(SDLManager::getInstance().getWindow(), &windowWidth, &windowHeight);
-    
-    float startX = (player == 1) ? (windowWidth * 0.75f) : (windowWidth * 0.25f);
-    float yPos = GameConfig::getInstance()->isDownscroll() ? (windowHeight - 150.0f) : 50.0f;
-    
-    float arrowSpacing = 120.0f;
-    float totalWidth = arrowSpacing * (keyCount - 1);
-    float xOffset = startX - (totalWidth * 0.5f);
-        
-    for (int i = 0; i < keyCount; i++) {
-        AnimatedSprite* babyArrow = new AnimatedSprite();
-        
-        babyArrow->loadFrames("assets/images/NOTE_assets.png", "assets/images/NOTE_assets.xml");
-
-        std::string staticFrame = NOTE_STYLES[i % 4] + NOTE_DIRS[i % 4] + "0000";
-        
-        std::string lowerDir = NOTE_DIRS[i % 4];
-        std::transform(lowerDir.begin(), lowerDir.end(), lowerDir.begin(), ::tolower);
-        std::string pressPrefix = lowerDir + " press";
-        std::string confirmPrefix = lowerDir + " confirm";
-
-        babyArrow->addAnimation("static", staticFrame, 24, false);
-        babyArrow->addAnimation("pressed", pressPrefix, 24, false);
-        babyArrow->addAnimation("confirm", confirmPrefix, 24, false);
-
-        babyArrow->playAnimation("static");
-        babyArrow->setPosition(xOffset, yPos);
-        
-        babyArrow->setScale(0.7f, 0.7f);
-
-        strumLineNotes.push_back(babyArrow);
-        babyArrow->setVisible(true);
-        
-        xOffset += arrowSpacing;
     }
 }
 

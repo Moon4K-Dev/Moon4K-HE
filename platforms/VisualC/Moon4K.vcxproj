@@ -45,6 +45,7 @@
     <ClCompile Include="..\..\src\moon4k\states\PlayState.cpp" />
     <ClCompile Include="..\..\src\moon4k\substates\PauseSubState.cpp" />
     <ClCompile Include="..\..\src\moon4k\SwagState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\ui\StrumNote.cpp" />
     <ClCompile Include="..\..\src\stb_image_impl.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

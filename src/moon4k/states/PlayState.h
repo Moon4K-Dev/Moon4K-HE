@@ -14,6 +14,7 @@
 #include "../../engine/core/SDLManager.h"
 #include "../../engine/graphics/Text.h"
 #include "../../engine/core/Engine.h"
+#include "../ui/StrumNote.h"
 #ifdef __MINGW32__ 
 #elif defined(__SWITCH__)
 #else
@@ -50,7 +51,6 @@ public:
     void generateSong(std::string dataPath);
     void startSong();
     void startCountdown();
-    void generateStaticArrows(int player);
     void generateNotes();
     void goodNoteHit(Note* note);
     void noteMiss(int direction);
@@ -75,12 +75,11 @@ private:
     
     std::string curSong;
     Sound* vocals = nullptr;
-    std::vector<AnimatedSprite*> strumLineNotes;
+    std::vector<StrumNote*> strumLineNotes;
     std::vector<Note*> notes;
     const float STRUM_X = 42.0f;
     const float STRUM_X_MIDDLESCROLL = -278.0f;
-    const std::vector<std::string> NOTE_STYLES = {"arrow", "arrow", "arrow", "arrow"};
-    const std::vector<std::string> NOTE_DIRS = {"LEFT", "DOWN", "UP", "RIGHT"};
+    const int laneOffset = 100;
     
     std::array<KeyBinding, 4> arrowKeys;
     std::array<NXBinding, 4> nxArrowKeys;
