@@ -139,7 +139,7 @@ void PlayState::update(float deltaTime) {
             auto strum = strumLineNotes[note->direction % keyCount];
             if (!strum) continue;
 
-            if (GameConfig::getInstance()->isDownscroll()) {
+            if (GameConfig::getInstance()->getDownscroll()) {
                 note->setY(strum->getY() + (0.45f * (Conductor::songPosition - note->strumTime) * GameConfig::getInstance()->getScrollSpeed()));
             } else {
                 note->setY(strum->getY() - (0.45f * (Conductor::songPosition - note->strumTime) * GameConfig::getInstance()->getScrollSpeed()));
@@ -193,7 +193,11 @@ void PlayState::update(float deltaTime) {
 void PlayState::handleInput() {
     for (size_t i = 0; i < 4; i++) {
         if (i < strumLineNotes.size() && strumLineNotes[i]) {
-            if (isKeyJustPressed(static_cast<int>(i)) || isNXButtonJustPressed(static_cast<int>(i))) {
+            bool keyPressed = isKeyPressed(static_cast<int>(i)) || isNXButtonPressed(static_cast<int>(i));
+            bool keyJustPressed = isKeyJustPressed(static_cast<int>(i)) || isNXButtonJustPressed(static_cast<int>(i));
+            bool keyJustReleased = isKeyJustReleased(static_cast<int>(i)) || isNXButtonJustReleased(static_cast<int>(i));
+            
+            if (keyJustPressed) {
                 strumLineNotes[i]->playAnimation("press");
                 
                 bool noteHit = false;
@@ -205,15 +209,19 @@ void PlayState::handleInput() {
                     }
                 }
                 
-                if (!noteHit) {
-                    if (GameConfig::getInstance()->isGhostTapping()) {
-                        // do nun lol
-                    } else {
-                        noteMiss(static_cast<int>(i));
+                if (!noteHit && !GameConfig::getInstance()->getGhostTapping()) {
+                    noteMiss(static_cast<int>(i));
+                }
+            }
+            else if (keyPressed) {
+                for (auto note : notes) {
+                    if (note && note->shouldHit && note->isSustainNote && !note->wasGoodHit && 
+                        note->direction == static_cast<int>(i) && note->canBeHit) {
+                        goodNoteHit(note);
                     }
                 }
             }
-            else if (isKeyJustReleased(static_cast<int>(i)) || isNXButtonJustReleased(static_cast<int>(i))) {
+            else if (keyJustReleased) {
                 strumLineNotes[i]->playAnimation("static");
             }
         }
@@ -301,7 +309,7 @@ void PlayState::startCountdown() {
     int windowWidth = Engine::getInstance()->getWindowWidth();
     int windowHeight = Engine::getInstance()->getWindowHeight();
     
-    float yPos = GameConfig::getInstance()->isDownscroll() ? (windowHeight - 150.0f) : 100.0f;
+    float yPos = GameConfig::getInstance()->getDownscroll() ? (windowHeight - 150.0f) : 100.0f;
     yPos -= 20;
     
     float totalWidth = laneOffset * (keyCount - 1);
@@ -419,7 +427,7 @@ void PlayState::generateNotes() {
 
                     oldNote->nextNote = sustainNote;
                     spawnNotes.push_back(sustainNote);
-                    totalNotes++;
+                totalNotes++;
                 }
             }
         }
@@ -496,7 +504,12 @@ void PlayState::goodNoteHit(Note* note) {
         score += 350;
         updateScoreText();
         
-        note->kill = true;
+        if (!note->isSustainNote) {
+            note->kill = true;
+        }
+        else if (note->isEndNote) {
+            note->kill = true;
+        }
     }
 }
 

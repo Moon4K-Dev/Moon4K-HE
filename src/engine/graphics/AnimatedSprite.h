@@ -85,8 +85,17 @@ public:
         animations = other.getAnimations();
     }
 
-private:
+    SDL_Texture* shareTexture() const { return texture; }
+    
+    const std::map<std::string, Frame>& getFrames() const { return frames; }
+    void copyFramesFrom(const AnimatedSprite& other) { frames = other.getFrames(); }
+
+protected:
     std::map<std::string, Frame> frames;
+    float offsetX = 0;
+    float offsetY = 0;
+
+private:
     std::map<std::string, Animation> animations;
     Animation* currentAnimation = nullptr;
     int currentFrame = 0;
@@ -95,8 +104,4 @@ private:
 
     void parseXML(const std::string& xmlPath);
     void loadTexture(const std::string& imagePath) override;
-
-protected:
-    float offsetX = 0;
-    float offsetY = 0;
 };

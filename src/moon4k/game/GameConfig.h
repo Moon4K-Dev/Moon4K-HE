@@ -7,30 +7,28 @@ class GameConfig {
 private:
     static GameConfig* instance;
     nlohmann::json config;
-    float scrollSpeed = 1.0f;
-    float songOffset = 0.0f;
     bool downscroll = false;
     bool ghostTapping = false;
     std::string noteskin = "default";
+    float scrollSpeed = 1.0f;
+    float songOffset = 0.0f;
 
     GameConfig();
     void loadConfig();
+    void saveConfig();
 
 public:
     static GameConfig* getInstance();
-    
+
+    bool getDownscroll() const { return downscroll; }
+    bool getGhostTapping() const { return ghostTapping; }
+    const std::string& getNoteskin() const { return noteskin; }
     float getScrollSpeed() const { return scrollSpeed; }
-    void setScrollSpeed(float speed) { scrollSpeed = speed; }
-
     float getSongOffset() const { return songOffset; }
-    void setSongOffset(float offset) { songOffset = offset; }
 
-    bool isDownscroll() const { return downscroll; }
-    bool isGhostTapping() const { return ghostTapping; }
-    std::string getNoteskin() const { return noteskin; }
-    
     void setDownscroll(bool value);
     void setGhostTapping(bool value);
     void setNoteskin(const std::string& value);
-    void saveConfig();
+    void setScrollSpeed(float value);
+    void setSongOffset(float value);
 }; 

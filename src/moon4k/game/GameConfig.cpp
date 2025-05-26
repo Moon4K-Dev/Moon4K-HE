@@ -30,10 +30,14 @@ void GameConfig::loadConfig() {
             downscroll = gameConfig.value("downscroll", false);
             ghostTapping = gameConfig.value("ghostTapping", false);
             noteskin = gameConfig.value("noteskin", "default");
+            scrollSpeed = gameConfig.value("scrollSpeed", 1.0f);
+            songOffset = gameConfig.value("songOffset", 0.0f);
         } else {
             downscroll = false;
             ghostTapping = false;
             noteskin = "default";
+            scrollSpeed = 1.0f;
+            songOffset = 0.0f;
         }
     } catch (const std::exception& e) {
         Log::getInstance().error("Error parsing config.json: " + std::string(e.what()));
@@ -55,6 +59,18 @@ void GameConfig::setGhostTapping(bool value) {
 void GameConfig::setNoteskin(const std::string& value) {
     noteskin = value;
     config["gameConfig"]["noteskin"] = value;
+    saveConfig();
+}
+
+void GameConfig::setScrollSpeed(float value) {
+    scrollSpeed = value;
+    config["gameConfig"]["scrollSpeed"] = value;
+    saveConfig();
+}
+
+void GameConfig::setSongOffset(float value) {
+    songOffset = value;
+    config["gameConfig"]["songOffset"] = value;
     saveConfig();
 }
 

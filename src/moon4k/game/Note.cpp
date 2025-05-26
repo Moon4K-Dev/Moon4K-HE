@@ -14,6 +14,8 @@ bool Note::assetsLoaded = false;
 SDL_Texture* Note::noteTexture = nullptr;
 AnimatedSprite* Note::sharedInstance = nullptr;
 std::map<std::string, AnimatedSprite::Animation> Note::noteAnimations;
+nlohmann::json Note::cachedConfig;
+std::string Note::currentNoteskin;
 
 void Note::loadAssets() {
     if (!assetsLoaded) {
@@ -33,6 +35,8 @@ void Note::unloadAssets() {
             sharedInstance = nullptr;
         }
         noteAnimations.clear();
+        cachedConfig = nlohmann::json();
+        currentNoteskin.clear();
         assetsLoaded = false;
     }
 }
@@ -74,43 +78,61 @@ void Note::loadNoteSkin(const std::string& skin, int dir) {
 
     noteskin = skin;
     std::string configPath = "assets/images/ui-skins/" + noteskin + "/config.json";
-    auto config = loadConfig(configPath);
+    std::string spritePath = "assets/images/ui-skins/" + noteskin + "/notes";
 
-    if (config.contains("offsets")) {
-        offsets = config["offsets"].get<std::vector<float>>();
-    } else {
-        offsets = {0.0f, 0.0f};
+    if (!assetsLoaded || currentNoteskin != skin) {
+        cachedConfig = loadConfig(configPath);
+        
+        if (cachedConfig.contains("offsets")) {
+            offsets = cachedConfig["offsets"].get<std::vector<float>>();
+        } else {
+            offsets = {0.0f, 0.0f};
+        }
+        
+        if (!assetsLoaded || currentNoteskin != skin) {
+            sharedInstance->loadFrames(spritePath + ".png", spritePath + ".xml");
+            currentNoteskin = skin;
+            
+            const char* noteTypes[] = {"left", "down", "up", "right"};
+            const char* noteAnims[] = {"static", "press", "confirm", "note", "hold", "holdend"};
+            int fps = cachedConfig.value("framerate", 24);
+
+            for (const char* type : noteTypes) {
+                std::string prefix = type;
+                std::vector<std::string> frames;
+
+                frames = {prefix + " static0000"};
+                sharedInstance->addAnimation(type + std::string("_static"), frames, fps, false);
+
+                frames = {prefix + " press0000", prefix + " press0001", prefix + " press0002"};
+                sharedInstance->addAnimation(type + std::string("_press"), frames, fps, false);
+
+                frames = {prefix + " confirm0000", prefix + " confirm0001", prefix + " confirm0002"};
+                sharedInstance->addAnimation(type + std::string("_confirm"), frames, fps, false);
+
+                frames = {prefix + " note0000"};
+                sharedInstance->addAnimation(type + std::string("_note"), frames, fps, false);
+
+                frames = {prefix + " hold0000"};
+                sharedInstance->addAnimation(type + std::string("_hold"), frames, fps, false);
+
+                frames = {prefix + " hold end0000"};
+                sharedInstance->addAnimation(type + std::string("_holdend"), frames, fps, false);
+            }
+            
+            noteTexture = sharedInstance->shareTexture();
+            assetsLoaded = true;
+        }
     }
 
-    std::string spritePath = "assets/images/ui-skins/" + noteskin + "/notes";
-    loadFrames(spritePath + ".png", spritePath + ".xml");
+    setTexture(noteTexture);
+    copyFramesFrom(*sharedInstance);
+    copyAnimationsFrom(*sharedInstance);
 
     const char* noteTypes[] = {"left", "down", "up", "right"};
-    const char* noteAnims[] = {"static", "press", "confirm", "note", "hold", "holdend"};
-    int fps = config.value("framerate", 24);
-
     std::string prefix = noteTypes[direction];
-    std::vector<std::string> frames;
 
-    frames = {prefix + " static0000"};
-    addAnimation("static", frames, fps, false);
-
-    frames = {prefix + " press0000", prefix + " press0001", prefix + " press0002"};
-    addAnimation("press", frames, fps, false);
-
-    frames = {prefix + " confirm0000", prefix + " confirm0001", prefix + " confirm0002"};
-    addAnimation("confirm", frames, fps, false);
-
-    frames = {prefix + " note0000"};
-    addAnimation("note", frames, fps, false);
-
-    frames = {prefix + " hold0000"};
-    addAnimation("hold", frames, fps, false);
-
-    frames = {prefix + " hold end0000"};
-    addAnimation("holdend", frames, fps, false);
-
-    float size = config.value("size", 0.7f);
+    float size = cachedConfig.value("size", 0.7f);
     setScale(size, size);
     updateHitbox();
 
@@ -134,7 +156,9 @@ void Note::loadNoteSkin(const std::string& skin, int dir) {
 }
 
 void Note::playAnim(const std::string& anim) {
-    playAnimation(anim);
+    const char* noteTypes[] = {"left", "down", "up", "right"};
+    std::string prefix = noteTypes[direction];
+    playAnimation(prefix + "_" + anim);
     setPosition(getX() + offsets[0], getY() + offsets[1]);
 }
 
@@ -151,6 +175,7 @@ void Note::calculateCanBeHit() {
             if (strumTime > Conductor::songPosition - (Conductor::safeZoneOffset * 1.5f) &&
                 strumTime < Conductor::songPosition + (Conductor::safeZoneOffset * 0.5f)) {
                 canBeHit = true;
+                tooLate = false;
             } else {
                 canBeHit = false;
             }
@@ -158,9 +183,14 @@ void Note::calculateCanBeHit() {
             if (strumTime > Conductor::songPosition - Conductor::safeZoneOffset * 0.3f &&
                 strumTime < Conductor::songPosition + Conductor::safeZoneOffset * 0.2f) {
                 canBeHit = true;
+                tooLate = false;
             } else {
                 canBeHit = false;
             }
+        }
+        
+        if (strumTime < Conductor::songPosition - Conductor::safeZoneOffset * 2.0f && !wasGoodHit) {
+            tooLate = true;
         }
     } else {
         if (shouldHit) {
@@ -178,11 +208,16 @@ void Note::calculateCanBeHit() {
                 canBeHit = false;
             }
         }
-    }
 
-    if (strumTime < Conductor::songPosition - Conductor::safeZoneOffset && !wasGoodHit) {
-        tooLate = true;
+        if (strumTime < Conductor::songPosition - Conductor::safeZoneOffset && !wasGoodHit) {
+            tooLate = true;
+        }
     }
 }
 
-Note::~Note() {}
+Note::~Note() {
+    texture = nullptr;
+    
+    frames.clear();
+    noteAnimations.clear();
+}

@@ -20,6 +20,8 @@ public:
     static SDL_Texture* noteTexture;
     static AnimatedSprite* sharedInstance;
     static std::map<std::string, AnimatedSprite::Animation> noteAnimations;
+    static nlohmann::json cachedConfig;
+    static std::string currentNoteskin;
 
     static void loadAssets();
     static void unloadAssets();
