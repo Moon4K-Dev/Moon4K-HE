@@ -5,12 +5,12 @@
 struct BPMChangeEvent {
     int stepTime;
     float songTime;
-    int bpm;
+    float bpm;
 };
 
 class Conductor {
 public:
-    static int bpm;
+    static float bpm;
     static float crochet; // beats in milliseconds
     static float stepCrochet; // steps in milliseconds
     static float songPosition;
@@ -25,5 +25,6 @@ public:
     Conductor();
     
     static void mapBPMChanges(const SwagSong& song);
-    static void changeBPM(int newBpm);
+    static void changeBPM(float newBpm, float songMultiplier = 1.0f);
+    static void recalculateStuff(float songMultiplier = 1.0f);
 };

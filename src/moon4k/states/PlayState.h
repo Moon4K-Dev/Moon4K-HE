@@ -54,6 +54,7 @@ public:
     void generateNotes();
     void goodNoteHit(Note* note);
     void noteMiss(int direction);
+    void sortByShit(Note* a, Note* b);
 
     static PlayState* instance;
     static SwagSong SONG;
@@ -62,9 +63,15 @@ public:
     bool startedCountdown = false;
 
     std::vector<Note*> unspawnNotes;
+    std::vector<Note*> spawnNotes;
     int combo = 0;
     int score = 0;
     int misses = 0;
+    float accuracy = 0.00f;
+    float totalNotesHit = 0.0f;
+    int totalPlayed = 0;
+    bool pfc = false;
+    std::string curRank = "P";
     Sound* getVocals() const { return vocals; }
 
 private:
@@ -89,6 +96,8 @@ private:
     void handleOpponentNoteHit(float deltaTime);
     SDL_Scancode getScancodeFromString(const std::string& keyName);
     SDL_GameControllerButton getButtonFromString(const std::string& buttonName);
+    void updateAccuracy();
+    void updateRank();
 
     bool isKeyPressed(int keyIndex) const {
         const auto& binding = arrowKeys[keyIndex];

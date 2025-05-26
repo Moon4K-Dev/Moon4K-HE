@@ -99,23 +99,35 @@ SwagSong Song::parseJSONshit(const std::string& rawJson) {
                     section.altAnim = noteJson.value("altAnim", false);
                     
                     if (noteJson.contains("sectionNotes") && noteJson["sectionNotes"].is_array()) {
-                        for (const auto& noteArray : noteJson["sectionNotes"]) {
-                            if (!noteArray.is_array()) continue;
-                            
-                            std::vector<float> note;
-                            for (const auto& value : noteArray) {
-                                if (value.is_number()) {
-                                    note.push_back(value.get<float>());
-                                } else if (value.is_string()) {
-                                    try {
-                                        note.push_back(std::stof(value.get<std::string>()));
-                                    } catch (...) {
-                                        continue;
+                        for (const auto& noteData : noteJson["sectionNotes"]) {
+                            if (noteData.is_object()) {
+                                float strumTime = noteData.value("noteStrum", 0.0f);
+                                int noteVal = noteData.value("noteData", 0);
+                                float susLength = noteData.value("noteSus", 0.0f);
+                                
+                                std::vector<float> note = {strumTime, static_cast<float>(noteVal), 0.0f, susLength};
+                                section.sectionNotes.push_back(note);
+                                
+                                Log::getInstance().info("Added note: strumTime=" + std::to_string(strumTime) + 
+                                                      ", noteData=" + std::to_string(noteVal) + 
+                                                      ", susLength=" + std::to_string(susLength));
+                            }
+                            else if (noteData.is_array()) {
+                                std::vector<float> note;
+                                for (const auto& value : noteData) {
+                                    if (value.is_number()) {
+                                        note.push_back(value.get<float>());
+                                    } else if (value.is_string()) {
+                                        try {
+                                            note.push_back(std::stof(value.get<std::string>()));
+                                        } catch (...) {
+                                            continue;
+                                        }
                                     }
                                 }
-                            }
-                            if (!note.empty()) {
-                                section.sectionNotes.push_back(note);
+                                if (!note.empty()) {
+                                    section.sectionNotes.push_back(note);
+                                }
                             }
                         }
                     }

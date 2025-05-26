@@ -1,15 +1,16 @@
 #include "Conductor.h"
 #include <iostream>
+#include "Song.h"
 
-int Conductor::bpm = 100;
-float Conductor::crochet = ((60.0f / bpm) * 1000.0f);
-float Conductor::stepCrochet = crochet / 4.0f;
-float Conductor::songPosition = 0.0f;
-float Conductor::lastSongPos = 0.0f;
-float Conductor::offset = 0.0f;
+float Conductor::bpm = 0;
+float Conductor::crochet = 0;
+float Conductor::stepCrochet = 0;
+float Conductor::songPosition = 0;
+float Conductor::lastSongPos = 0;
+float Conductor::offset = 0;
+float Conductor::safeZoneOffset = 0;
 
 int Conductor::safeFrames = 10;
-float Conductor::safeZoneOffset = (safeFrames / 60.0f) * 1000.0f;
 
 std::vector<BPMChangeEvent> Conductor::bpmChangeMap;
 
@@ -19,7 +20,7 @@ Conductor::Conductor() {
 void Conductor::mapBPMChanges(const SwagSong& song) {
     bpmChangeMap.clear();
 
-    int curBPM = song.bpm;
+    float curBPM = song.bpm;
     int totalSteps = 0;
     float totalPos = 0.0f;
 
@@ -29,7 +30,7 @@ void Conductor::mapBPMChanges(const SwagSong& song) {
             BPMChangeEvent event{
                 totalSteps,
                 totalPos,
-                curBPM
+                static_cast<int>(curBPM)
             };
             bpmChangeMap.push_back(event);
         }
@@ -48,8 +49,13 @@ void Conductor::mapBPMChanges(const SwagSong& song) {
     std::cout << std::endl;
 }
 
-void Conductor::changeBPM(int newBpm) {
+void Conductor::changeBPM(float newBpm, float songMultiplier) {
     bpm = newBpm;
+    recalculateStuff(songMultiplier);
+}
+
+void Conductor::recalculateStuff(float songMultiplier) {
     crochet = ((60.0f / bpm) * 1000.0f);
     stepCrochet = crochet / 4.0f;
+    safeZoneOffset = (safeFrames / 60.0f) * 1000.0f;
 }

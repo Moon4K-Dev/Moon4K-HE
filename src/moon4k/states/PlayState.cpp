@@ -88,8 +88,6 @@ void PlayState::create() {
     Engine* engine = Engine::getInstance();
 
     loadSongConfig();
-    startCountdown();
-    generateNotes();
     startingSong = true;
     #ifdef __SWITCH__
     // nun
@@ -135,23 +133,31 @@ void PlayState::update(float deltaTime) {
             unspawnNotes.erase(unspawnNotes.begin());
         }
 
-        for (auto it = notes.begin(); it != notes.end();) {
-            Note* note = *it;
-            if (note) {
-                note->update(deltaTime);
+        for (auto note : notes) {
+            if (!note) continue;
+            
+            auto strum = strumLineNotes[note->direction % keyCount];
+            if (!strum) continue;
 
-                if (note->mustPress && note->tooLate && !note->wasGoodHit) {
-                    noteMiss(note->noteData);
-                    note->kill = true;
-                }
-
-                if (note->kill || note->strumTime < Conductor::songPosition - 5000) {
-                    it = notes.erase(it);
-                } else {
-                    ++it;
-                }
+            if (GameConfig::getInstance()->isDownscroll()) {
+                note->setY(strum->getY() + (0.45f * (Conductor::songPosition - note->strumTime) * GameConfig::getInstance()->getScrollSpeed()));
             } else {
-                ++it;
+                note->setY(strum->getY() - (0.45f * (Conductor::songPosition - note->strumTime) * GameConfig::getInstance()->getScrollSpeed()));
+            }
+
+            note->update(deltaTime);
+
+            if (note->shouldHit && note->tooLate && !note->wasGoodHit) {
+                noteMiss(note->direction);
+                note->kill = true;
+            }
+
+            if (note->kill || note->strumTime < Conductor::songPosition - 5000) {
+                auto it = std::find(notes.begin(), notes.end(), note);
+                if (it != notes.end()) {
+                    notes.erase(it);
+                }
+                delete note;
             }
         }
 
@@ -192,7 +198,7 @@ void PlayState::handleInput() {
                 
                 bool noteHit = false;
                 for (auto note : notes) {
-                    if (note && note->mustPress && !note->wasGoodHit && note->noteData == static_cast<int>(i) && note->canBeHit) {
+                    if (note && note->shouldHit && !note->wasGoodHit && note->direction == static_cast<int>(i) && note->canBeHit) {
                         goodNoteHit(note);
                         noteHit = true;
                         break;
@@ -267,6 +273,9 @@ void PlayState::generateSong(std::string dataPath) {
             delete inst;
             inst = nullptr;
         }
+
+        startCountdown();
+        generateNotes();
         
     } catch (const std::exception& ex) {
         std::cerr << "Error generating song: " << ex.what() << std::endl;
@@ -336,65 +345,122 @@ void PlayState::render() {
 
 void PlayState::generateNotes() {
     unspawnNotes.clear();
+    spawnNotes.clear();
     notes.clear();
 
     Log::getInstance().info("Generating notes from " + std::to_string(SONG.notes.size()) + " sections");
 
     int totalNotes = 0;
-    int currentSection = 0;
-    
     for (const auto& section : SONG.notes) {
-        Log::getInstance().info("Section " + std::to_string(currentSection) + 
-                              " has " + std::to_string(section.sectionNotes.size()) + " notes");
-        currentSection++;
-    }
+        Log::getInstance().info("Processing section with " + std::to_string(section.sectionNotes.size()) + " notes");
+        
+        Conductor::recalculateStuff(1.0f);
 
-    currentSection = 0;
-    for (const auto& section : SONG.notes) {
         for (const auto& noteData : section.sectionNotes) {
             if (noteData.size() >= 2) {
                 float strumTime = noteData[0];
-                int noteType = static_cast<int>(noteData[1]);
+                int direction = static_cast<int>(noteData[1]);
                 
-                if (noteType >= keyCount) {
+                if (direction >= keyCount) {
+                    Log::getInstance().info("Skipping note with direction " + std::to_string(direction) + " (exceeds keyCount " + std::to_string(keyCount) + ")");
                     continue;
                 }
 
-                Log::getInstance().info("Creating note in section " + std::to_string(currentSection) + 
-                                     ": time=" + std::to_string(strumTime) + 
-                                     ", type=" + std::to_string(noteType));
+                float sustainLength = noteData.size() > 3 ? noteData[3] : 0.0f;
 
-                bool sustainNote = noteData.size() > 3 && noteData[3] > 0;
-                float sustainLength = sustainNote ? noteData[3] : 0;
-
-                Note* prevNote = nullptr;
-                if (sustainNote && !unspawnNotes.empty()) {
-                    prevNote = unspawnNotes.back();
+                StrumNote* strum = nullptr;
+                if (direction < strumLineNotes.size()) {
+                    strum = strumLineNotes[direction];
+                }
+                
+                if (!strum) {
+                    Log::getInstance().error("No strum note found for direction " + std::to_string(direction));
+                    continue;
                 }
 
-                Note* note = new Note(strumTime, noteType, prevNote, sustainNote);
-                note->sustainLength = sustainLength;
-                
-                float baseX = (Engine::getInstance()->getWindowWidth() * 0.5f);
-                float arrowSpacing = 120.0f;
-                float totalWidth = arrowSpacing * (keyCount - 1);
-                float xOffset = baseX - (totalWidth * 0.5f) + (noteType * arrowSpacing);
-                note->setPosition(xOffset, 0);
-                
-                unspawnNotes.push_back(note);
+                float daStrumTime = strumTime + (GameConfig::getInstance()->getSongOffset());
+                int daNoteData = direction % keyCount;
+
+                Note* oldNote = nullptr;
+                if (!spawnNotes.empty()) {
+                    oldNote = spawnNotes.back();
+                }
+
+                Note* swagNote = new Note(strum->getX(), strum->getY(), daNoteData, daStrumTime, 
+                                        GameConfig::getInstance()->getNoteskin(), false, keyCount);
+                swagNote->sustainLength = sustainLength;
+                swagNote->lastNote = oldNote;
+                swagNote->playAnim("note");
+
+                spawnNotes.push_back(swagNote);
                 totalNotes++;
+
+                float susLength = sustainLength / Conductor::stepCrochet;
+                
+                if (susLength > 0) {
+                    Log::getInstance().info("Creating sustain note with length " + std::to_string(susLength));
+                }
+                
+                for (int susNote = 0; susNote < static_cast<int>(susLength); susNote++) {
+                    oldNote = spawnNotes.back();
+
+                    Note* sustainNote = new Note(strum->getX(), strum->getY(), daNoteData, 
+                                               daStrumTime + (Conductor::stepCrochet * susNote) + Conductor::stepCrochet,
+                                               GameConfig::getInstance()->getNoteskin(), true, keyCount);
+                    sustainNote->lastNote = oldNote;
+                    sustainNote->isSustainNote = true;
+
+                    if (susNote == static_cast<int>(susLength) - 1) {
+                        sustainNote->isEndNote = true;
+                        sustainNote->playAnim("holdend");
+                    } else {
+                        sustainNote->playAnim("hold");
+                    }
+
+                    oldNote->nextNote = sustainNote;
+                    spawnNotes.push_back(sustainNote);
+                    totalNotes++;
+                }
             }
         }
-        currentSection++;
     }
 
-    Log::getInstance().info("Generated " + std::to_string(totalNotes) + " total notes from " + 
-                          std::to_string(currentSection) + " sections");
+    Log::getInstance().info("Generated " + std::to_string(totalNotes) + " total notes");
+    Log::getInstance().info("Sorting " + std::to_string(spawnNotes.size()) + " notes by strumTime");
 
-    std::sort(unspawnNotes.begin(), unspawnNotes.end(),
-        [](Note* a, Note* b) {
-            return a->strumTime < b->strumTime;
-        });
+    std::sort(spawnNotes.begin(), spawnNotes.end(), 
+        [](Note* a, Note* b) { return a->strumTime < b->strumTime; });
+
+    unspawnNotes = spawnNotes;
+    Log::getInstance().info("Final unspawnNotes count: " + std::to_string(unspawnNotes.size()));
+}
+
+void PlayState::updateAccuracy() {
+    totalPlayed += 1;
+    accuracy = (totalNotesHit / totalPlayed) * 100;
+    if (accuracy >= 100.00f) {
+        if (pfc && misses == 0)
+            accuracy = 100.00f;
+        else {
+            accuracy = 99.98f;
+            pfc = false;
+        }
+    }
+}
+
+void PlayState::updateRank() {
+    if (accuracy == 100.00f)
+        curRank = "P";
+    else if (accuracy >= 90.00f)
+        curRank = "A";
+    else if (accuracy >= 80.00f)
+        curRank = "B";
+    else if (accuracy >= 70.00f)
+        curRank = "C";
+    else if (accuracy >= 60.00f)
+        curRank = "D";
+    else
+        curRank = "F";
 }
 
 void PlayState::destroy() {
@@ -414,8 +480,8 @@ void PlayState::goodNoteHit(Note* note) {
     if (!note->wasGoodHit) {
         note->wasGoodHit = true;
         
-        if (note->noteData >= 0 && note->noteData < 4) {
-            int arrowIndex = note->noteData + 4;
+        if (note->direction >= 0 && note->direction < 4) {
+            int arrowIndex = note->direction + 4;
             if (arrowIndex < strumLineNotes.size() && strumLineNotes[arrowIndex]) {
                 float currentX = strumLineNotes[arrowIndex]->getX();
                 float currentY = strumLineNotes[arrowIndex]->getY();
@@ -579,13 +645,13 @@ void PlayState::handleOpponentNoteHit(float deltaTime) {
     static int currentArrowIndex = -1;
 
     for (auto note : notes) {
-        if (note && !note->mustPress && !note->wasGoodHit) {
+        if (note && !note->shouldHit && !note->wasGoodHit) {
             float timeDiff = note->strumTime - Conductor::songPosition;
             
             if (timeDiff <= 45.0f && timeDiff >= -Conductor::safeZoneOffset) {
                 note->canBeHit = true;
                 
-                int arrowIndex = note->noteData;
+                int arrowIndex = note->direction;
                 if (arrowIndex < strumLineNotes.size() && strumLineNotes[arrowIndex]) {
                     strumLineNotes[arrowIndex]->playAnimation("confirm");
                     isAnimating = true;
