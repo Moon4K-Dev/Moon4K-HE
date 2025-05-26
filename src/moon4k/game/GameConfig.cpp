@@ -1,5 +1,5 @@
 #include "GameConfig.h"
-#include "../engine/utils/Log.h"
+#include "../../engine/utils/Log.h"
 #include <fstream>
 
 GameConfig* GameConfig::instance = nullptr;
