@@ -16,7 +16,7 @@ GameConfig* GameConfig::getInstance() {
 }
 
 void GameConfig::loadConfig() {
-    std::ifstream file("assets/data/config.json");
+    std::ifstream file("assets/config.json");
     if (!file.is_open()) {
         Log::getInstance().error("Could not open config.json");
         return;
@@ -51,7 +51,7 @@ void GameConfig::setGhostTapping(bool value) {
 }
 
 void GameConfig::saveConfig() {
-    std::ofstream file("assets/data/config.json");
+    std::ofstream file("assets/config.json");
     if (!file.is_open()) {
         Log::getInstance().error("Could not open config.json for writing");
         return;

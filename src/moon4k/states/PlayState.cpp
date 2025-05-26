@@ -59,7 +59,7 @@ PlayState::~PlayState() {
 }
 
 void PlayState::loadSongConfig() {
-    std::ifstream configFile("assets/data/config.json");
+    std::ifstream configFile("assets/config.json");
     if (!configFile.is_open()) {
         Log::getInstance().error("Failed to open config.json");
         return;
@@ -233,15 +233,6 @@ void PlayState::generateSong(std::string dataPath) {
         std::string folder = dataPath;
         std::string baseSongName = dataPath;
         
-        if (folder.length() >= 5 && folder.substr(folder.length() - 5) == "-easy" ||
-            folder.length() >= 5 && folder.substr(folder.length() - 5) == "-hard") {
-            size_t dashPos = folder.rfind("-");
-            if (dashPos != std::string::npos) {
-                folder = folder.substr(0, dashPos);
-                baseSongName = folder;
-            }
-        }
-        
         SONG = Song::loadFromJson(songName, folder);
         if (!SONG.validScore) {
             Log::getInstance().error("Failed to load song data");
@@ -250,10 +241,16 @@ void PlayState::generateSong(std::string dataPath) {
         
         Conductor::changeBPM(SONG.bpm);
         curSong = songName;
+        sections = SONG.sections;
+        sectionLengths = SONG.sectionLengths;
+        keyCount = SONG.keyCount ? SONG.keyCount : 4;
+        timescale = SONG.timescale;
 
         std::cout << "Generated song: " << curSong 
                   << " BPM: " << SONG.bpm 
-                  << " Speed: " << SONG.speed << std::endl;
+                  << " Speed: " << SONG.speed 
+                  << " Key Count: " << keyCount 
+                  << " Sections: " << sections << std::endl;
 
         if (vocals != nullptr) {
             delete vocals;
@@ -264,20 +261,10 @@ void PlayState::generateSong(std::string dataPath) {
             inst = nullptr;
         }
 
-        if (SONG.needsVoices) {
-            std::string vocalsPath = "assets/songs/" + baseSongName + "/Voices" + soundExt;
-            vocals = new Sound();
-            if (!vocals->load(vocalsPath)) {
-                Log::getInstance().error("Failed to load vocals: " + vocalsPath);
-                delete vocals;
-                vocals = nullptr;
-            }
-        }
-
-        std::string instPath = "assets/songs/" + baseSongName + "/Inst" + soundExt;
+        std::string instPath = "assets/charts/" + baseSongName + "/" + baseSongName + soundExt;
         inst = new Sound();
         if (!inst->load(instPath)) {
-            Log::getInstance().error("Failed to load instrumentals: " + instPath);
+            Log::getInstance().error("Failed to load song audio: " + instPath);
             delete inst;
             inst = nullptr;
         }
@@ -339,17 +326,17 @@ void PlayState::generateStaticArrows(int player) {
     float yPos = GameConfig::getInstance()->isDownscroll() ? (windowHeight - 150.0f) : 50.0f;
     
     float arrowSpacing = 120.0f;
-    float totalWidth = arrowSpacing * 3;
+    float totalWidth = arrowSpacing * (keyCount - 1);
     float xOffset = startX - (totalWidth * 0.5f);
         
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < keyCount; i++) {
         AnimatedSprite* babyArrow = new AnimatedSprite();
         
         babyArrow->loadFrames("assets/images/NOTE_assets.png", "assets/images/NOTE_assets.xml");
 
-        std::string staticFrame = NOTE_STYLES[i] + NOTE_DIRS[i] + "0000";
+        std::string staticFrame = NOTE_STYLES[i % 4] + NOTE_DIRS[i % 4] + "0000";
         
-        std::string lowerDir = NOTE_DIRS[i];
+        std::string lowerDir = NOTE_DIRS[i % 4];
         std::transform(lowerDir.begin(), lowerDir.end(), lowerDir.begin(), ::tolower);
         std::string pressPrefix = lowerDir + " press";
         std::string confirmPrefix = lowerDir + " confirm";
@@ -381,31 +368,24 @@ void PlayState::generateNotes() {
     
     for (const auto& section : SONG.notes) {
         Log::getInstance().info("Section " + std::to_string(currentSection) + 
-                              " has " + std::to_string(section.sectionNotes.size()) + " notes, " +
-                              "mustHitSection=" + std::to_string(section.mustHitSection));
+                              " has " + std::to_string(section.sectionNotes.size()) + " notes");
         currentSection++;
     }
 
     currentSection = 0;
     for (const auto& section : SONG.notes) {
-        Log::getInstance().info("Processing section " + std::to_string(currentSection) + 
-                              ", mustHitSection=" + std::to_string(section.mustHitSection));
-
         for (const auto& noteData : section.sectionNotes) {
             if (noteData.size() >= 2) {
                 float strumTime = noteData[0];
                 int noteType = static_cast<int>(noteData[1]);
                 
-                bool mustPress = section.mustHitSection;
-                if (noteType >= 4) {
-                    mustPress = !section.mustHitSection;
-                    noteType = noteType % 4;
+                if (noteType >= keyCount) {
+                    continue;
                 }
 
                 Log::getInstance().info("Creating note in section " + std::to_string(currentSection) + 
                                      ": time=" + std::to_string(strumTime) + 
-                                     ", type=" + std::to_string(noteType) + 
-                                     ", mustPress=" + std::to_string(mustPress));
+                                     ", type=" + std::to_string(noteType));
 
                 bool sustainNote = noteData.size() > 3 && noteData[3] > 0;
                 float sustainLength = sustainNote ? noteData[3] : 0;
@@ -416,13 +396,11 @@ void PlayState::generateNotes() {
                 }
 
                 Note* note = new Note(strumTime, noteType, prevNote, sustainNote);
-                note->mustPress = mustPress;
                 note->sustainLength = sustainLength;
                 
-                float baseX = mustPress ? (Engine::getInstance()->getWindowWidth() * 0.75f) 
-                                      : (Engine::getInstance()->getWindowWidth() * 0.25f);
+                float baseX = (Engine::getInstance()->getWindowWidth() * 0.5f);
                 float arrowSpacing = 120.0f;
-                float totalWidth = arrowSpacing * 3;
+                float totalWidth = arrowSpacing * (keyCount - 1);
                 float xOffset = baseX - (totalWidth * 0.5f) + (noteType * arrowSpacing);
                 note->setPosition(xOffset, 0);
                 
@@ -440,16 +418,6 @@ void PlayState::generateNotes() {
         [](Note* a, Note* b) {
             return a->strumTime < b->strumTime;
         });
-
-    int count = 0;
-    for (const auto& note : unspawnNotes) {
-        if (count >= 10) break;
-        Log::getInstance().info("Sorted note " + std::to_string(count) + 
-                              ": time=" + std::to_string(note->strumTime) + 
-                              ", type=" + std::to_string(note->noteData) + 
-                              ", mustPress=" + std::to_string(note->mustPress));
-        count++;
-    }
 }
 
 void PlayState::destroy() {
@@ -498,7 +466,7 @@ void PlayState::noteMiss(int direction) {
 }
 
 void PlayState::loadKeybinds() {
-    std::ifstream configFile("assets/data/config.json");
+    std::ifstream configFile("assets/config.json");
     if (!configFile.is_open()) {
         Log::getInstance().error("Failed to open config.json");
         return;

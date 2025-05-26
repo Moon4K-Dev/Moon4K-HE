@@ -2,8 +2,8 @@
     "mainBinds": {
         "left": "A",
         "down": "S",
-        "up": "W",
-        "right": "D"
+        "up": "K",
+        "right": "L"
     },
     "altBinds": {
         "left": "ArrowLeft",
@@ -28,7 +28,7 @@
         "ghostTapping": false
     },
     "songConfig": {
-        "songName": "bopeebo",
-        "difficulty": "hard"
+        "songName": "cheatreal",
+        "difficulty": ""
     }
 }

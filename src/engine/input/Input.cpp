@@ -34,8 +34,8 @@ void Input::initController() {
         return;
     }
 
-    Log::getInstance().info("Loading game controller mappings from assets/data/gamecontrollerdb.txt");
-    int mappingsLoaded = SDL_GameControllerAddMappingsFromFile("assets/data/gamecontrollerdb.txt");
+    Log::getInstance().info("Loading game controller mappings from assets/gamecontrollerdb.txt");
+    int mappingsLoaded = SDL_GameControllerAddMappingsFromFile("assets/gamecontrollerdb.txt");
     Log::getInstance().info("Loaded " + std::to_string(mappingsLoaded) + " controller mappings");
 
     int numJoysticks = SDL_NumJoysticks();

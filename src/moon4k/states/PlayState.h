@@ -68,6 +68,11 @@ public:
     Sound* getVocals() const { return vocals; }
 
 private:
+    int sections = 0;
+    std::vector<SwagSection> sectionLengths;
+    int keyCount = 4;
+    std::vector<int> timescale;
+    
     std::string curSong;
     Sound* vocals = nullptr;
     std::vector<AnimatedSprite*> strumLineNotes;
