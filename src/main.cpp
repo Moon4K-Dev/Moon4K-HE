@@ -2,17 +2,17 @@
 #include "../engine/core/Engine.h"
 #include "gameName/states/PlayState.h"
 #include "../engine/input/Input.h"
-#include "../engine/states/SplashState.h"
+#include "../moon4k/states/SplashState.h"
 #elif defined(__SWITCH__)
 #include "../engine/core/Engine.h"
 #include "gameName/states/PlayState.h"
 #include "../engine/input/Input.h"
-#include "../engine/states/SplashState.h"
+#include "../moon4k/states/SplashState.h"
 #include <switch.h>
 #else
 #include "engine/core/Engine.h"
 #include "engine/input/Input.h"
-#include "engine/states/SplashState.h"
+#include "moon4k/states/PlayState.h"
 #include "engine/utils/Discord.h"
 #endif
 
@@ -36,17 +36,11 @@ int main(int argc, char** argv) {
     int height = 720;
     int fps = 60;
     bool debug = true;
-    bool showSplash = true;
-    Engine engine(width, height, "Moon4K", fps);
+    Engine engine(width, height, "Moon4K - Hamburger Engine", fps);
     engine.debugMode = debug;
     
-    if (showSplash) {
-        SplashState* splashState = new SplashState();
-        engine.pushState(splashState);
-    } else {
-        //PlayState* initialState = new PlayState();
-        //engine.pushState(initialState);
-    }
+    PlayState* splashState = new PlayState();
+    engine.pushState(splashState);
     
     #ifdef __SWITCH__
     while (appletMainLoop()) {

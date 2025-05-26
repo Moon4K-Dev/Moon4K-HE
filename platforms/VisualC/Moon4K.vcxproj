@@ -37,6 +37,14 @@
     <ClCompile Include="..\..\src\engine\utils\Log.cpp" />
     <ClCompile Include="..\..\src\engine\utils\Paths.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\moon4k\game\Conductor.cpp" />
+    <ClCompile Include="..\..\src\moon4k\game\GameConfig.cpp" />
+    <ClCompile Include="..\..\src\moon4k\game\Note.cpp" />
+    <ClCompile Include="..\..\src\moon4k\game\Section.cpp" />
+    <ClCompile Include="..\..\src\moon4k\game\Song.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\PlayState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\substates\PauseSubState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\SwagState.cpp" />
     <ClCompile Include="..\..\src\stb_image_impl.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

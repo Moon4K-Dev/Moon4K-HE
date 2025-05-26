@@ -16,6 +16,18 @@
     <Filter Include="Source Files\hamburger-engine">
       <UniqueIdentifier>{40e14db3-c466-4a37-b3d7-d8a16112f683}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\moon4k">
+      <UniqueIdentifier>{c310dd95-6890-448b-a587-32de45292813}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\moon4k\substates">
+      <UniqueIdentifier>{b338477e-a73b-40c3-b92a-5057faacf573}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\moon4k\states">
+      <UniqueIdentifier>{542972d0-b12c-4727-b99f-973bb096e3b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\moon4k\game">
+      <UniqueIdentifier>{ca4eb8be-3bde-4072-b1f7-bacd0b171418}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp">
@@ -74,6 +86,30 @@
     </ClCompile>
     <ClCompile Include="..\..\src\engine\audio\SoundManager.cpp">
       <Filter>Source Files\hamburger-engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\SwagState.cpp">
+      <Filter>Source Files\moon4k</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\substates\PauseSubState.cpp">
+      <Filter>Source Files\moon4k\substates</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\PlayState.cpp">
+      <Filter>Source Files\moon4k\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\game\Conductor.cpp">
+      <Filter>Source Files\moon4k\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\game\GameConfig.cpp">
+      <Filter>Source Files\moon4k\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\game\Note.cpp">
+      <Filter>Source Files\moon4k\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\game\Section.cpp">
+      <Filter>Source Files\moon4k\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\game\Song.cpp">
+      <Filter>Source Files\moon4k\game</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
