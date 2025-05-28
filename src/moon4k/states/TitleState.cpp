@@ -52,6 +52,11 @@ void TitleState::create() {
     songText->setPosition(10, 10);
     engine->addText(songText);
 
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), "Listening to: %s In TitleState", currentMusic.c_str());
+    Discord::GetInstance().SetDetails(buffer);
+    Discord::GetInstance().Update();
+
     Log::getInstance().info("TitleState initialized successfully! Playing: " + currentMusic);
 }
 

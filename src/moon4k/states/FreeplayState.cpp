@@ -66,6 +66,9 @@ void FreeplayState::create() {
 
     updateSongList();
     changeSelection();
+
+    Discord::GetInstance().SetDetails("Selecting a song...(in the FreeplayState!)");
+    Discord::GetInstance().Update();
 }
 
 void FreeplayState::update(float deltaTime) {

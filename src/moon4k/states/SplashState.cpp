@@ -78,6 +78,9 @@ void SplashState::create() {
     wackyText->setAlpha(0.0f);
     engine->addText(wackyText);
 
+    Discord::GetInstance().SetDetails("Just booted up Moon4K!");
+    Discord::GetInstance().Update();
+
     Log::getInstance().info("SplashState initialized!");
 }
 

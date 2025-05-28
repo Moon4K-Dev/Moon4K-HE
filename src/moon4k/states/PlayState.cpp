@@ -37,7 +37,6 @@ PlayState::PlayState()
     
     int windowWidth = Engine::getInstance()->getWindowWidth();
     int windowHeight = Engine::getInstance()->getWindowHeight();
-    scoreText->setPosition(windowWidth / 2 - 100, windowHeight - 50);
     countdownText->setPosition(windowWidth / 2 - 20, windowHeight / 2 - 32);
     loadingText->setPosition(windowWidth / 2 - 50, windowHeight / 2 - 16);
     updateScoreText();
@@ -65,7 +64,6 @@ PlayState::PlayState(const std::string& songName)
     
     int windowWidth = Engine::getInstance()->getWindowWidth();
     int windowHeight = Engine::getInstance()->getWindowHeight();
-    scoreText->setPosition(windowWidth / 2 - 100, windowHeight - 50);
     countdownText->setPosition(windowWidth / 2 - 20, windowHeight / 2 - 32);
     loadingText->setPosition(windowWidth / 2 - 50, windowHeight / 2 - 16);
     updateScoreText();
@@ -104,21 +102,21 @@ void PlayState::create() {
     Engine* engine = Engine::getInstance();
     generateSong(directSongName);
     startingSong = true;
-    
+}
+
+void PlayState::update(float deltaTime) {
+    SwagState::update(deltaTime);
+
     #ifdef __SWITCH__
     // nun
     #elif defined(__MINGW32__)
     // nun
     #else
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "In Game - %s", curSong.c_str());
-    Discord::GetInstance().SetState(buffer);
+    snprintf(buffer, sizeof(buffer), "In Game - %s - Score: %d - Misses: %d - Accuracy: %.2f%%", curSong.c_str(), score, misses, accuracy);
+    Discord::GetInstance().SetDetails(buffer);
     Discord::GetInstance().Update();
     #endif
-}
-
-void PlayState::update(float deltaTime) {
-    SwagState::update(deltaTime);
 
     if (isLoading) {
         if (!unspawnNotes.empty() && inst != nullptr) {
@@ -492,7 +490,7 @@ void PlayState::generateNotes() {
 
 void PlayState::updateAccuracy() {
     totalPlayed += 1;
-    accuracy = (totalNotesHit / totalPlayed) * 100;
+    accuracy = totalPlayed > 0 ? (static_cast<float>(totalNotesHit) / static_cast<float>(totalPlayed)) * 100.0f : 0.0f;
     if (accuracy >= 100.00f) {
         if (pfc && misses == 0)
             accuracy = 100.00f;
@@ -501,6 +499,7 @@ void PlayState::updateAccuracy() {
             pfc = false;
         }
     }
+    updateRank();
 }
 
 void PlayState::updateRank() {
@@ -524,6 +523,8 @@ void PlayState::destroy() {
     accuracy = 0.0f;
     misses = 0;
     combo = 0;
+    totalPlayed = 0;
+    totalNotesHit = 0;
 }
 
 void PlayState::openSubState(SubState* subState) {
@@ -532,8 +533,15 @@ void PlayState::openSubState(SubState* subState) {
 }
 
 void PlayState::updateScoreText() {
-    std::string text = "Score: " + std::to_string(score) + " Misses: " + std::to_string(misses) + " Accuracy: " + std::to_string(accuracy) + "%";
+    char accuracyStr[10];
+    snprintf(accuracyStr, sizeof(accuracyStr), "%.2f", accuracy);
+    std::string text = "Score: " + std::to_string(score) + " Misses: " + std::to_string(misses) + " Accuracy: " + accuracyStr + "%";
     scoreText->setText(text);
+    
+    int windowWidth = Engine::getInstance()->getWindowWidth();
+    int windowHeight = Engine::getInstance()->getWindowHeight();
+    float textWidth = scoreText->getWidth();
+    scoreText->setPosition((windowWidth - textWidth) / 2, windowHeight - 50);
 }
 
 void PlayState::goodNoteHit(Note* note) {
@@ -554,6 +562,10 @@ void PlayState::goodNoteHit(Note* note) {
 
         combo++;
         score += 350;
+        if (!note->isSustainNote) {
+            totalNotesHit++;
+            updateAccuracy();
+        }
         updateScoreText();
         
         if (!note->isSustainNote) {
@@ -570,6 +582,7 @@ void PlayState::noteMiss(int direction) {
     misses++;
     score -= 10;
     if (score < 0) score = 0;
+    updateAccuracy();
     updateScoreText();
 }
 

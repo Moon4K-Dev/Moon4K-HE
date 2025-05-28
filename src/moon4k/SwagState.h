@@ -3,6 +3,11 @@
 #include "../engine/core/State.h"
 #include "../engine/audio/Sound.h"
 #include "game/Conductor.h"
+#ifdef __MINGW32__ 
+#elif defined(__SWITCH__)
+#else
+#include "../engine/utils/Discord.h"
+#endif
 
 class SwagState : public State {
 public:

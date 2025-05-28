@@ -15,11 +15,6 @@
 #include "../../engine/graphics/Text.h"
 #include "../../engine/core/Engine.h"
 #include "../ui/StrumNote.h"
-#ifdef __MINGW32__ 
-#elif defined(__SWITCH__)
-#else
-#include "../../engine/utils/Discord.h"
-#endif
 #include <vector>
 #include <array>
 #include <string>
