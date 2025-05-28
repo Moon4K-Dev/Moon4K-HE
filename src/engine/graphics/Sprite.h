@@ -63,4 +63,6 @@ public:
     
     void setAlpha(float alpha) { this->alpha = alpha; }
     float getAlpha() const { return alpha; }
+
+    void setY(float newY) { y = newY; }
 };

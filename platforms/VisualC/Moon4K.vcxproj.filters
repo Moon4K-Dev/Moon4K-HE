@@ -48,9 +48,6 @@
     <ClCompile Include="..\..\src\engine\utils\Paths.cpp">
       <Filter>Source Files\hamburger-engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engine\states\SplashState.cpp">
-      <Filter>Source Files\hamburger-engine</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\engine\input\Input.cpp">
       <Filter>Source Files\hamburger-engine</Filter>
     </ClCompile>
@@ -116,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\moon4k\ui\StrumNote.cpp">
       <Filter>Source Files\moon4k\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\SplashState.cpp">
+      <Filter>Source Files\moon4k\states</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

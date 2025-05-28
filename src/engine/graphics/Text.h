@@ -28,6 +28,10 @@ public:
     const std::string& getText() const { return text; }
     float getX() const { return x; }
     float getY() const { return y; }
+    void setY(float newY) { y = newY; updateTexture(); }
+    
+    void setAlpha(float alpha) { this->alpha = std::max(0.0f, std::min(1.0f, alpha)); updateTexture(); }
+    float getAlpha() const { return alpha; }
 
 protected:
     float x;
@@ -48,4 +52,5 @@ private:
     TTF_Font* font;
     SDL_Texture* texture;
     bool isVisible;
+    float alpha = 1.0f;
 };

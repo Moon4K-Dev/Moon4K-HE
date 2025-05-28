@@ -32,7 +32,6 @@
     <ClCompile Include="..\..\src\engine\graphics\Text.cpp" />
     <ClCompile Include="..\..\src\engine\graphics\VideoPlayer.cpp" />
     <ClCompile Include="..\..\src\engine\input\Input.cpp" />
-    <ClCompile Include="..\..\src\engine\states\SplashState.cpp" />
     <ClCompile Include="..\..\src\engine\utils\Discord.cpp" />
     <ClCompile Include="..\..\src\engine\utils\Log.cpp" />
     <ClCompile Include="..\..\src\engine\utils\Paths.cpp" />
@@ -43,6 +42,7 @@
     <ClCompile Include="..\..\src\moon4k\game\Section.cpp" />
     <ClCompile Include="..\..\src\moon4k\game\Song.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\PlayState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\SplashState.cpp" />
     <ClCompile Include="..\..\src\moon4k\substates\PauseSubState.cpp" />
     <ClCompile Include="..\..\src\moon4k\SwagState.cpp" />
     <ClCompile Include="..\..\src\moon4k\ui\StrumNote.cpp" />

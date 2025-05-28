@@ -97,6 +97,8 @@ void Text::renderText(const std::string& text, float x, float y) {
     destRect.y = static_cast<int>(y);
     SDL_QueryTexture(textTexture, nullptr, nullptr, &destRect.w, &destRect.h);
     
+    SDL_SetTextureAlphaMod(textTexture, static_cast<Uint8>(alpha * 255));
+    
     SDL_RenderCopy(SDLManager::getInstance().getRenderer(), textTexture, nullptr, &destRect);
     SDL_DestroyTexture(textTexture);
 }
