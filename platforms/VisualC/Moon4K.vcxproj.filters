@@ -117,5 +117,11 @@
     <ClCompile Include="..\..\src\moon4k\states\SplashState.cpp">
       <Filter>Source Files\moon4k\states</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\TitleState.cpp">
+      <Filter>Source Files\moon4k\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\FreeplayState.cpp">
+      <Filter>Source Files\moon4k\states</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -8,6 +8,7 @@
 #include "../input/Input.h"
 #include <SDL2/SDL_mixer.h>
 #include <algorithm>
+#include "../utils/Log.h"
 
 Engine* Engine::instance = nullptr;
 
@@ -137,29 +138,39 @@ void Engine::switchState(State* state) {
         State* oldState = states.top();
         states.pop();
         
-        for (auto sprite : sprites) {
-            if (sprite) {
-                delete sprite;
-            }
-        }
-        sprites.clear();
-        
-        for (auto sprite : animatedSprites) {
-            if (sprite) {
-                delete sprite;
-            }
-        }
-        animatedSprites.clear();
-        
-        for (auto text : texts) {
-            if (text) {
-                delete text;
-            }
-        }
-        texts.clear();
-        
         oldState->destroy();
         delete oldState;
+        
+        try {
+            for (size_t i = 0; i < sprites.size(); ++i) {
+                if (sprites[i]) {
+                    delete sprites[i];
+                    sprites[i] = nullptr;
+                }
+            }
+            sprites.clear();
+            
+            for (size_t i = 0; i < animatedSprites.size(); ++i) {
+                if (animatedSprites[i]) {
+                    delete animatedSprites[i];
+                    animatedSprites[i] = nullptr;
+                }
+            }
+            animatedSprites.clear();
+            
+            for (size_t i = 0; i < texts.size(); ++i) {
+                if (texts[i]) {
+                    delete texts[i];
+                    texts[i] = nullptr;
+                }
+            }
+            texts.clear();
+            
+        } catch (const std::exception& e) {
+            Log::getInstance().error("Exception while clearing resources: " + std::string(e.what()));
+        } catch (...) {
+            Log::getInstance().error("Unknown exception while clearing resources");
+        }
     }
     
     states.push(state);

@@ -6,7 +6,8 @@
 #include "../SwagState.h"
 #include "../../engine/utils/Log.h"
 #include "../../engine/utils/Paths.h"
-//#include "TitleState.h"
+
+class TitleState;
 
 class SplashState : public SwagState {
 public:

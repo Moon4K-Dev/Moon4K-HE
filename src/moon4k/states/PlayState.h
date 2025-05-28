@@ -40,6 +40,7 @@ struct NXBinding {
 class PlayState : public SwagState {
 public:
     PlayState();
+    PlayState(const std::string& songName);
     ~PlayState();
 
     void create() override;
@@ -75,10 +76,17 @@ public:
     Sound* getVocals() const { return vocals; }
 
 private:
+    std::string directSongName;
     int sections = 0;
     std::vector<SwagSection> sectionLengths;
     int keyCount = 4;
     std::vector<int> timescale;
+    
+    bool isLoading = true;
+    bool isCountingDown = false;
+    float countdownTime = 3.0f;
+    Text* countdownText;
+    Text* loadingText;
     
     std::string curSong;
     Sound* vocals = nullptr;

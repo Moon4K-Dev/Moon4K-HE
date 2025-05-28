@@ -17,17 +17,57 @@ PlayState* PlayState::instance = nullptr;
 SwagSong PlayState::SONG;
 Sound* PlayState::inst = nullptr;
 
-PlayState::PlayState() {
+PlayState::PlayState() 
+    : directSongName("")
+{
     instance = this;
     inst = nullptr;
     vocals = nullptr;
     Note::loadAssets();
+    
     scoreText = new Text();
     scoreText->setFormat("assets/fonts/vcr.ttf", 32, 0xFFFFFFFF);
+    
+    countdownText = new Text();
+    countdownText->setFormat("assets/fonts/vcr.ttf", 64, 0xFFFFFFFF);
+    
+    loadingText = new Text();
+    loadingText->setFormat("assets/fonts/vcr.ttf", 32, 0xFFFFFFFF);
+    loadingText->setText("Loading...");
     
     int windowWidth = Engine::getInstance()->getWindowWidth();
     int windowHeight = Engine::getInstance()->getWindowHeight();
     scoreText->setPosition(windowWidth / 2 - 100, windowHeight - 50);
+    countdownText->setPosition(windowWidth / 2 - 20, windowHeight / 2 - 32);
+    loadingText->setPosition(windowWidth / 2 - 50, windowHeight / 2 - 16);
+    updateScoreText();
+
+    loadKeybinds();
+}
+
+PlayState::PlayState(const std::string& songName)
+    : directSongName(songName)
+{
+    instance = this;
+    inst = nullptr;
+    vocals = nullptr;
+    Note::loadAssets();
+    
+    scoreText = new Text();
+    scoreText->setFormat("assets/fonts/vcr.ttf", 32, 0xFFFFFFFF);
+    
+    countdownText = new Text();
+    countdownText->setFormat("assets/fonts/vcr.ttf", 64, 0xFFFFFFFF);
+    
+    loadingText = new Text();
+    loadingText->setFormat("assets/fonts/vcr.ttf", 32, 0xFFFFFFFF);
+    loadingText->setText("Loading chart...");
+    
+    int windowWidth = Engine::getInstance()->getWindowWidth();
+    int windowHeight = Engine::getInstance()->getWindowHeight();
+    scoreText->setPosition(windowWidth / 2 - 100, windowHeight - 50);
+    countdownText->setPosition(windowWidth / 2 - 20, windowHeight / 2 - 32);
+    loadingText->setPosition(windowWidth / 2 - 50, windowHeight / 2 - 16);
     updateScoreText();
 
     loadKeybinds();
@@ -54,41 +94,17 @@ PlayState::~PlayState() {
     notes.clear();
     
     delete scoreText;
+    delete countdownText;
+    delete loadingText;
     Note::unloadAssets();
     destroy();
 }
 
-void PlayState::loadSongConfig() {
-    std::ifstream configFile("assets/config.json");
-    if (!configFile.is_open()) {
-        Log::getInstance().error("Failed to open config.json");
-        return;
-    }
-
-    try {
-        nlohmann::json config;
-        configFile >> config;
-
-        if (config.contains("songConfig")) {
-            auto songConfig = config["songConfig"];
-            std::string songName = songConfig["songName"].get<std::string>();
-            std::string difficulty = songConfig["difficulty"].get<std::string>();
-            
-            std::string fullSongName = difficulty.empty() ? songName : songName + "-" + difficulty;
-            generateSong(fullSongName);
-        } else {
-            Log::getInstance().error("No songConfig found in config.json");
-        }
-    } catch (const std::exception& ex) {
-        Log::getInstance().error("Failed to parse song config: " + std::string(ex.what()));
-    }
-}
-
 void PlayState::create() {
     Engine* engine = Engine::getInstance();
-
-    loadSongConfig();
+    generateSong(directSongName);
     startingSong = true;
+    
     #ifdef __SWITCH__
     // nun
     #elif defined(__MINGW32__)
@@ -103,6 +119,28 @@ void PlayState::create() {
 
 void PlayState::update(float deltaTime) {
     SwagState::update(deltaTime);
+
+    if (isLoading) {
+        if (!unspawnNotes.empty() && inst != nullptr) {
+            isLoading = false;
+            isCountingDown = true;
+            Log::getInstance().info("Chart loaded, starting countdown");
+        }
+        return;
+    }
+
+    if (isCountingDown) {
+        countdownTime -= deltaTime;
+        int currentCount = static_cast<int>(std::ceil(countdownTime));
+        if (currentCount <= 0) {
+            isCountingDown = false;
+            countdownText->setText("");
+            startedCountdown = true;
+        } else {
+            countdownText->setText(std::to_string(currentCount));
+        }
+        return;
+    }
 
     if (!_subStates.empty()) {
         _subStates.back()->update(deltaTime);
@@ -326,6 +364,11 @@ void PlayState::startCountdown() {
 }
 
 void PlayState::render() {
+    if (isLoading) {
+        loadingText->render();
+        return;
+    }
+
     for (auto arrow : strumLineNotes) {
         if (arrow && arrow->isVisible()) {
             arrow->render();
@@ -339,6 +382,10 @@ void PlayState::render() {
     }
 
     scoreText->render();
+    
+    if (isCountingDown) {
+        countdownText->render();
+    }
 
     static int lastNoteCount = 0;
     if (notes.size() != lastNoteCount) {
@@ -472,6 +519,11 @@ void PlayState::updateRank() {
 }
 
 void PlayState::destroy() {
+    scoreText = nullptr;
+    score = 0;
+    accuracy = 0.0f;
+    misses = 0;
+    combo = 0;
 }
 
 void PlayState::openSubState(SubState* subState) {
@@ -480,7 +532,7 @@ void PlayState::openSubState(SubState* subState) {
 }
 
 void PlayState::updateScoreText() {
-    std::string text = "Score: " + std::to_string(score) + " Misses: " + std::to_string(misses);
+    std::string text = "Score: " + std::to_string(score) + " Misses: " + std::to_string(misses) + " Accuracy: " + std::to_string(accuracy) + "%";
     scoreText->setText(text);
 }
 

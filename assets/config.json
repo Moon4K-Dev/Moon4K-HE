@@ -29,9 +29,5 @@
         "noteskin": "default",
         "scrollSpeed": 1.0,
         "songOffset": 0.0
-    },
-    "songConfig": {
-        "songName": "cheatreal",
-        "difficulty": ""
     }
 }

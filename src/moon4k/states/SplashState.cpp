@@ -1,4 +1,5 @@
 #include "SplashState.h"
+#include "TitleState.h"
 #include "../../engine/core/Engine.h"
 #include "../../engine/input/Input.h"
 #include "../../engine/audio/SoundManager.h"
@@ -25,7 +26,7 @@ SplashState::SplashState()
         "Look Ma, I'm in a video game!",
         "Swag Swag Cool Shit",
         "I love ninjamuffin99",
-        "Follow yophlox on twitter!",
+        "Follow @maybekoi_ on twitter!",
         "Inspired by FNF and OSU!Mania",
         "The first o in the Moon 4k logo stole government files, das why it's hidden lol!"
     };
@@ -127,7 +128,8 @@ void SplashState::update(float deltaTime) {
         transitionTimer += deltaTime;
         if (transitionTimer >= 5.5f && !titleStarted) {
             titleStarted = true;
-            //Engine::getInstance()->switchState(new TitleState());
+            Log::getInstance().info("tryna switch to title state");
+            Engine::getInstance()->switchState(new TitleState());
         }
     }
 }
@@ -139,16 +141,7 @@ void SplashState::render() {
 }
 
 void SplashState::destroy() {
-    if (arrowsexylogo) {
-        delete arrowsexylogo;
-        arrowsexylogo = nullptr;
-    }
-    if (funnyText) {
-        delete funnyText;
-        funnyText = nullptr;
-    }
-    if (wackyText) {
-        delete wackyText;
-        wackyText = nullptr;
-    }
+    arrowsexylogo = nullptr;
+    funnyText = nullptr;
+    wackyText = nullptr;
 }
