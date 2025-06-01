@@ -108,9 +108,7 @@ SwagSong Song::parseJSONshit(const std::string& rawJson) {
                                 std::vector<float> note = {strumTime, static_cast<float>(noteVal), 0.0f, susLength};
                                 section.sectionNotes.push_back(note);
                                 
-                                Log::getInstance().info("Added note: strumTime=" + std::to_string(strumTime) + 
-                                                      ", noteData=" + std::to_string(noteVal) + 
-                                                      ", susLength=" + std::to_string(susLength));
+                                //Log::getInstance().info("Added note: strumTime=" + std::to_string(strumTime) + ", noteData=" + std::to_string(noteVal) + ", susLength=" + std::to_string(susLength));
                             }
                             else if (noteData.is_array()) {
                                 std::vector<float> note;

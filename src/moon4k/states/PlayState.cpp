@@ -351,7 +351,7 @@ void PlayState::render() {
 
     static int lastNoteCount = 0;
     if (notes.size() != lastNoteCount) {
-        Log::getInstance().info("Active notes: " + std::to_string(notes.size()));
+        //Log::getInstance().info("Active notes: " + std::to_string(notes.size()));
         lastNoteCount = notes.size();
     }
 
@@ -369,7 +369,7 @@ void PlayState::generateNotes() {
 
     int totalNotes = 0;
     for (const auto& section : SONG.notes) {
-        Log::getInstance().info("Processing section with " + std::to_string(section.sectionNotes.size()) + " notes");
+        //Log::getInstance().info("Processing section with " + std::to_string(section.sectionNotes.size()) + " notes");
         
         Conductor::recalculateStuff(1.0f);
 
@@ -415,7 +415,7 @@ void PlayState::generateNotes() {
                 float susLength = sustainLength / Conductor::stepCrochet;
                 
                 if (susLength > 0) {
-                    Log::getInstance().info("Creating sustain note with length " + std::to_string(susLength));
+                    //Log::getInstance().info("Creating sustain note with length " + std::to_string(susLength));
                 }
                 
                 for (int susNote = 0; susNote < static_cast<int>(susLength); susNote++) {
