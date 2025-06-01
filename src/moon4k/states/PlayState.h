@@ -1,16 +1,16 @@
 #pragma once
 
-#include "../../engine/core/State.h"
+#include "../SwagState.h"
 #include "../../engine/graphics/Sprite.h"
 #include "../../engine/graphics/AnimatedSprite.h"
 #include "../../engine/input/Input.h"
 #include "../../engine/audio/Sound.h"
 #include "../substates/PauseSubState.h"
 #include "../../engine/utils/Log.h"
+#include "../../engine/utils/Paths.h"
 #include "../game/Song.h"
 #include "../game/Note.h"
 #include "../game/GameConfig.h"
-#include "../SwagState.h"
 #include "../../engine/core/SDLManager.h"
 #include "../../engine/graphics/Text.h"
 #include "../../engine/core/Engine.h"
@@ -34,7 +34,6 @@ struct NXBinding {
 
 class PlayState : public SwagState {
 public:
-    PlayState();
     PlayState(const std::string& songName);
     ~PlayState();
 
@@ -68,7 +67,6 @@ public:
     int totalPlayed = 0;
     bool pfc = false;
     std::string curRank = "P";
-    Sound* getVocals() const { return vocals; }
 
 private:
     std::string directSongName;

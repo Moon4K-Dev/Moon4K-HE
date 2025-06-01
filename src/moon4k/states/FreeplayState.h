@@ -1,9 +1,8 @@
 #pragma once
 
-#include "../../engine/core/State.h"
+#include "../SwagState.h"
 #include "../../engine/graphics/Sprite.h"
 #include "../../engine/graphics/Text.h"
-#include "../SwagState.h"
 #include "../../engine/utils/Log.h"
 #include "../../engine/utils/Paths.h"
 #include "../../engine/core/Engine.h"
@@ -13,6 +12,28 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+
+struct SongNote {
+    float strumTime;
+    int direction;
+    float sustainLength;
+};
+
+struct SongSection {
+    bool mustHitSection;
+    float bpm;
+    std::vector<SongNote> sectionNotes;
+};
+
+struct SongData {
+    std::string song;
+    float bpm;
+    float speed;
+    int sections;
+    int keyCount;
+    bool validScore;
+    std::vector<SongSection> notes;
+};
 
 class FreeplayState : public SwagState {
 public:
@@ -48,29 +69,6 @@ private:
     
     std::string selectedSong;
     float songHeight;
-    
-    struct SongNote {
-        float strumTime;
-        int direction;
-        float sustainLength;
-    };
-
-    struct SongSection {
-        std::vector<SongNote> sectionNotes;
-        bool mustHitSection;
-        float bpm;
-    };
-    
-    struct SongData {
-        std::string song;
-        std::vector<SongSection> notes;
-        float bpm;
-        int sections;
-        float speed;
-        int keyCount;
-        std::vector<float> sectionLengths;
-        bool validScore;
-    };
     
     SongData songData;
 };

@@ -1,5 +1,6 @@
 #include "FreeplayState.h"
 #include "PlayState.h"
+#include "MainMenuState.h"
 #include <random>
 #include <algorithm>
 #include <fstream>
@@ -27,6 +28,8 @@ FreeplayState::~FreeplayState() {
 }
 
 void FreeplayState::create() {
+    SwagState::create();
+
     Engine* engine = Engine::getInstance();
     
     menuBG = new Sprite(Paths::image("mainmenu/menubglol"));
@@ -76,25 +79,29 @@ void FreeplayState::update(float deltaTime) {
     Input::UpdateKeyStates();
     Input::UpdateControllerStates();
 
-    if (Input::justPressed(SDL_SCANCODE_BACKSPACE) || Input::justPressed(SDL_SCANCODE_ESCAPE)) {
-        //Engine::getInstance()->switchState(new MainMenuState());
-    }
-
-    if (Input::justPressed(SDL_SCANCODE_UP) || Input::justPressed(SDL_SCANCODE_DOWN)) {
-        changeSelection(Input::justPressed(SDL_SCANCODE_UP) ? -1 : 1);
-        updateSongImage();
-    }
-
-    if (Input::justPressed(SDL_SCANCODE_RETURN)) {
-        SoundManager::getInstance().stopMusic();
-        if (!songs.empty() && curSelected >= 0 && curSelected < static_cast<int>(songs.size())) {
-            std::string selectedSong = songs[curSelected];
-            Engine::getInstance()->switchState(new PlayState(selectedSong));
+    if (!isTransitioning()) {
+        if (Input::justPressed(SDL_SCANCODE_BACKSPACE) || Input::justPressed(SDL_SCANCODE_ESCAPE)) {
+            startTransitionOut(0.5f);
+            Engine::getInstance()->switchState(new MainMenuState());
         }
-    }
 
-    if (Input::justPressed(SDL_SCANCODE_R)) {
-        rescanSongs();
+        if (Input::justPressed(SDL_SCANCODE_UP) || Input::justPressed(SDL_SCANCODE_DOWN)) {
+            changeSelection(Input::justPressed(SDL_SCANCODE_UP) ? -1 : 1);
+            updateSongImage();
+        }
+
+        if (Input::justPressed(SDL_SCANCODE_RETURN)) {
+            if (!songs.empty() && curSelected >= 0 && curSelected < static_cast<int>(songs.size())) {
+                SoundManager::getInstance().stopMusic();
+                startTransitionOut(0.5f);
+                std::string selectedSong = songs[curSelected];
+                Engine::getInstance()->switchState(new PlayState(selectedSong));
+            }
+        }
+
+        if (Input::justPressed(SDL_SCANCODE_R)) {
+            rescanSongs();
+        }
     }
 }
 
@@ -133,6 +140,8 @@ void FreeplayState::render() {
     if (missText) missText->render();
     if (diffText) diffText->render();
     if (noSongsText) noSongsText->render();
+
+    SwagState::render();
 }
 
 void FreeplayState::destroy() {

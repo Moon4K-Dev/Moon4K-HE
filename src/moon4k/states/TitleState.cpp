@@ -2,6 +2,7 @@
 #include "../../engine/core/Engine.h"
 #include "../../engine/input/Input.h"
 #include "../../engine/audio/SoundManager.h"
+#include "MainMenuState.h"
 #include <random>
 #include <algorithm>
 
@@ -24,6 +25,8 @@ TitleState::~TitleState() {
 }
 
 void TitleState::create() {
+    SwagState::create();
+
     Log::getInstance().info("TitleState::create() - Starting...");
     Engine* engine = Engine::getInstance();
     
@@ -65,10 +68,13 @@ void TitleState::update(float deltaTime) {
     Input::UpdateKeyStates();
     Input::UpdateControllerStates();
 
-    if (Input::justPressed(SDL_SCANCODE_RETURN) || 
-        Input::justPressed(SDL_SCANCODE_SPACE) ||
-        Input::isControllerButtonJustPressed(SDL_CONTROLLER_BUTTON_START)) {        
-        Engine::getInstance()->switchState(new FreeplayState());
+    if (!isTransitioning()) {
+        if (Input::justPressed(SDL_SCANCODE_RETURN) || 
+            Input::justPressed(SDL_SCANCODE_SPACE) ||
+            Input::isControllerButtonJustPressed(SDL_CONTROLLER_BUTTON_START)) {        
+            startTransitionOut(0.5f);
+            Engine::getInstance()->switchState(new MainMenuState());
+        }
     }
 }
 
@@ -79,6 +85,8 @@ void TitleState::render() {
     if (songText) {
         songText->render();
     }
+    
+    SwagState::render();
 }
 
 void TitleState::destroy() {

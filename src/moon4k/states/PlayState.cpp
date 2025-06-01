@@ -17,39 +17,14 @@ PlayState* PlayState::instance = nullptr;
 SwagSong PlayState::SONG;
 Sound* PlayState::inst = nullptr;
 
-PlayState::PlayState() 
-    : directSongName("")
-{
-    instance = this;
-    inst = nullptr;
-    vocals = nullptr;
-    Note::loadAssets();
-    
-    scoreText = new Text();
-    scoreText->setFormat("assets/fonts/vcr.ttf", 32, 0xFFFFFFFF);
-    
-    countdownText = new Text();
-    countdownText->setFormat("assets/fonts/vcr.ttf", 64, 0xFFFFFFFF);
-    
-    loadingText = new Text();
-    loadingText->setFormat("assets/fonts/vcr.ttf", 32, 0xFFFFFFFF);
-    loadingText->setText("Loading...");
-    
-    int windowWidth = Engine::getInstance()->getWindowWidth();
-    int windowHeight = Engine::getInstance()->getWindowHeight();
-    countdownText->setPosition(windowWidth / 2 - 20, windowHeight / 2 - 32);
-    loadingText->setPosition(windowWidth / 2 - 50, windowHeight / 2 - 16);
-    updateScoreText();
-
-    loadKeybinds();
-}
-
 PlayState::PlayState(const std::string& songName)
-    : directSongName(songName)
+    : SwagState()
+    , directSongName(songName)
+    , scoreText(nullptr)
+    , countdownText(nullptr)
+    , loadingText(nullptr)
 {
     instance = this;
-    inst = nullptr;
-    vocals = nullptr;
     Note::loadAssets();
     
     scoreText = new Text();
@@ -72,10 +47,6 @@ PlayState::PlayState(const std::string& songName)
 }
 
 PlayState::~PlayState() {
-    if (vocals != nullptr) {
-        delete vocals;
-        vocals = nullptr;
-    }
     if (inst != nullptr) {
         delete inst;
         inst = nullptr;
@@ -301,10 +272,6 @@ void PlayState::generateSong(std::string dataPath) {
                   << " Key Count: " << keyCount 
                   << " Sections: " << sections << std::endl;
 
-        if (vocals != nullptr) {
-            delete vocals;
-            vocals = nullptr;
-        }
         if (inst != nullptr) {
             delete inst;
             inst = nullptr;
@@ -329,9 +296,6 @@ void PlayState::generateSong(std::string dataPath) {
 
 void PlayState::startSong() {
     startingSong = false;
-    if (vocals != nullptr) {
-        vocals->play();
-    }
     if (inst != nullptr) {
         inst->play();
     }

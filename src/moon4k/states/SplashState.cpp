@@ -37,6 +37,8 @@ SplashState::~SplashState() {
 }
 
 void SplashState::create() {
+    SwagState::create();
+
     Engine* engine = Engine::getInstance();
     
     SDL_SetRenderDrawColor(SDLManager::getInstance().getRenderer(), 0, 0, 0, 255);
@@ -89,50 +91,53 @@ void SplashState::update(float deltaTime) {
     Input::UpdateKeyStates();
     Input::UpdateControllerStates();
 
-    if (logoTweenDelay > 0) {
-        logoTweenDelay -= deltaTime;
-    } else if (arrowsexylogo->getAlpha() < 1.0f) {
-        float newAlpha = arrowsexylogo->getAlpha() + deltaTime;
-        arrowsexylogo->setAlpha(std::min<float>(1.0f, newAlpha));
-        arrowsexylogo->setY(arrowsexylogo->getY() - deltaTime * 35.0f);
-    }
+    if (!isTransitioning()) {
+        if (logoTweenDelay > 0) {
+            logoTweenDelay -= deltaTime;
+        } else if (arrowsexylogo->getAlpha() < 1.0f) {
+            float newAlpha = arrowsexylogo->getAlpha() + deltaTime;
+            arrowsexylogo->setAlpha(std::min<float>(1.0f, newAlpha));
+            arrowsexylogo->setY(arrowsexylogo->getY() - deltaTime * 35.0f);
+        }
 
-    if (textTweenDelay > 0) {
-        textTweenDelay -= deltaTime;
-    } else if (funnyText->getAlpha() < 1.0f && wackyTextDelay > 0) {
-        float newAlpha = funnyText->getAlpha() + deltaTime;
-        funnyText->setAlpha(std::min<float>(1.0f, newAlpha));
-        
-        if (!funnyTextReachedTarget) {
-            float newY = funnyText->getY() + deltaTime * 35.0f;
-            if (newY >= funnyTextTargetY) {
-                newY = funnyTextTargetY;
-                funnyTextReachedTarget = true;
+        if (textTweenDelay > 0) {
+            textTweenDelay -= deltaTime;
+        } else if (funnyText->getAlpha() < 1.0f && wackyTextDelay > 0) {
+            float newAlpha = funnyText->getAlpha() + deltaTime;
+            funnyText->setAlpha(std::min<float>(1.0f, newAlpha));
+            
+            if (!funnyTextReachedTarget) {
+                float newY = funnyText->getY() + deltaTime * 35.0f;
+                if (newY >= funnyTextTargetY) {
+                    newY = funnyTextTargetY;
+                    funnyTextReachedTarget = true;
+                }
+                funnyText->setY(newY);
             }
-            funnyText->setY(newY);
         }
-    }
 
-    if (wackyTextDelay > 0) {
-        wackyTextDelay -= deltaTime;
-    } else {
-        if (funnyText->getAlpha() > 0.0f) {
-            float newAlpha = funnyText->getAlpha() - deltaTime;
-            funnyText->setAlpha(std::max<float>(0.0f, newAlpha));
+        if (wackyTextDelay > 0) {
+            wackyTextDelay -= deltaTime;
+        } else {
+            if (funnyText->getAlpha() > 0.0f) {
+                float newAlpha = funnyText->getAlpha() - deltaTime;
+                funnyText->setAlpha(std::max<float>(0.0f, newAlpha));
+            }
+            
+            if (funnyText->getAlpha() < 0.1f) {
+                float newWackyAlpha = wackyText->getAlpha() + deltaTime;
+                wackyText->setAlpha(std::min<float>(1.0f, newWackyAlpha));
+            }
         }
-        
-        if (funnyText->getAlpha() < 0.1f) {
-            float newWackyAlpha = wackyText->getAlpha() + deltaTime;
-            wackyText->setAlpha(std::min<float>(1.0f, newWackyAlpha));
-        }
-    }
 
-    if (wackyText->getAlpha() >= 1.0f) {
-        transitionTimer += deltaTime;
-        if (transitionTimer >= 5.5f && !titleStarted) {
-            titleStarted = true;
-            Log::getInstance().info("tryna switch to title state");
-            Engine::getInstance()->switchState(new TitleState());
+        if (wackyText->getAlpha() >= 1.0f) {
+            transitionTimer += deltaTime;
+            if (transitionTimer >= 5.5f && !titleStarted) {
+                titleStarted = true;
+                Log::getInstance().info("tryna switch to title state");
+                startTransitionOut(0.5f);
+                Engine::getInstance()->switchState(new TitleState());
+            }
         }
     }
 }
@@ -141,6 +146,8 @@ void SplashState::render() {
     arrowsexylogo->render();
     funnyText->render();
     wackyText->render();
+    
+    SwagState::render();
 }
 
 void SplashState::destroy() {

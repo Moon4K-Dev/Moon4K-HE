@@ -32,13 +32,6 @@ void PauseSubState::create() {
     if (PlayState::inst) {
         PlayState::inst->pause();
     }
-    PlayState* playState = static_cast<PlayState*>(getParentState());
-    if (playState) {
-        Sound* vocals = playState->getVocals();
-        if (vocals) {
-            vocals->pause();
-        }
-    }
 }
 
 void PauseSubState::update(float deltaTime) {
@@ -50,13 +43,6 @@ void PauseSubState::update(float deltaTime) {
         SoundManager::getInstance().resumeMusic();
         if (PlayState::inst) {
             PlayState::inst->resume();
-        }
-        PlayState* playState = static_cast<PlayState*>(getParentState());
-        if (playState) {
-            Sound* vocals = playState->getVocals();
-            if (vocals) {
-                vocals->resume();
-            }
         }
         getParentState()->closeSubState();
     }

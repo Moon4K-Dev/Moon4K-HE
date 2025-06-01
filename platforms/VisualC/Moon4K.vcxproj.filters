@@ -123,6 +123,9 @@
     <ClCompile Include="..\..\src\moon4k\states\FreeplayState.cpp">
       <Filter>Source Files\moon4k\states</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\MainMenuState.cpp">
+      <Filter>Source Files\moon4k\states</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

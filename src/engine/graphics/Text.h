@@ -3,6 +3,7 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <algorithm>
 
 class Text {
 public:
@@ -30,7 +31,7 @@ public:
     float getY() const { return y; }
     void setY(float newY) { y = newY; updateTexture(); }
     
-    void setAlpha(float alpha) { this->alpha = std::max(0.0f, std::min(1.0f, alpha)); updateTexture(); }
+    void setAlpha(float alpha) { this->alpha = std::clamp(alpha, 0.0f, 1.0f); updateTexture(); }
     float getAlpha() const { return alpha; }
 
 protected:

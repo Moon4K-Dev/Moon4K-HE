@@ -1,11 +1,13 @@
 #pragma once
 
-#include "../../engine/core/State.h"
+#include "../SwagState.h"
 #include "../../engine/graphics/Sprite.h"
 #include "../../engine/graphics/Text.h"
-#include "../SwagState.h"
 #include "../../engine/utils/Log.h"
 #include "../../engine/utils/Paths.h"
+#include "../../engine/core/SDLManager.h"
+#include "../../engine/core/Engine.h"
+#include <vector>
 
 class TitleState;
 
@@ -14,8 +16,8 @@ public:
     static SplashState* instance;
     
     SplashState();
-    ~SplashState() override;
-    
+    ~SplashState();
+
     void create() override;
     void update(float deltaTime) override;
     void render() override;
@@ -25,10 +27,10 @@ private:
     Sprite* arrowsexylogo;
     Text* funnyText;
     Text* wackyText;
-    float transitionTimer;
-    bool titleStarted;
     std::vector<std::string> introTexts;
     std::string curWacky;
+    float transitionTimer;
+    bool titleStarted;
     float logoTweenDelay;
     float textTweenDelay;
     float wackyTextDelay;
