@@ -31,6 +31,9 @@
     <Filter Include="Source Files\moon4k\ui">
       <UniqueIdentifier>{b5cb5d9e-0aee-4477-8bfe-d6d5dd37dca2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\sdl2.vis">
+      <UniqueIdentifier>{0c2a676e-66df-454b-aac7-1d998d4bfe31}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp">
@@ -128,6 +131,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\moon4k\states\FreeplayState.cpp">
       <Filter>Source Files\moon4k\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\sdl2.vis\embedded_visualizer.cpp">
+      <Filter>Source Files\sdl2.vis</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

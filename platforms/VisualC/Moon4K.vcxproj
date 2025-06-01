@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\external\sdl2.vis\embedded_visualizer.cpp" />
     <ClCompile Include="..\..\src\engine\audio\Sound.cpp" />
     <ClCompile Include="..\..\src\engine\audio\SoundManager.cpp" />
     <ClCompile Include="..\..\src\engine\core\Engine.cpp" />

@@ -1,3 +1,6 @@
 [submodule "external/discord-rpc"]
 	path = external/discord-rpc
 	url = https://github.com/maybekoi/discord-rpc
+[submodule "external/sdl2.vis"]
+	path = external/sdl2.vis
+	url = https://github.com/hamburgerEngine/sdl2.vis

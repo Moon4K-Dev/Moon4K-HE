@@ -1,15 +1,32 @@
 #include "FreeplayState.h"
-#include "FreeplayStateLegacy.h"
+#include "MainMenuState.h"
 #include "PlayState.h"
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <filesystem>
 #include <algorithm>
 #include <fstream>
 #include "../backend/json.hpp"
+#include <cmath>
 
 using json = nlohmann::json;
 
 FreeplayState* FreeplayState::instance = nullptr;
+
+void SDLCALL postmix_callback(void* udata, Uint8* stream, int len) {
+    FreeplayState* state = static_cast<FreeplayState*>(udata);
+    if (state) {
+        const Sint16* samples = reinterpret_cast<const Sint16*>(stream);
+        int num_samples = len / sizeof(Sint16);
+        
+        for (int i = 0; i < state->AUDIO_BUFFER_SIZE && i < num_samples/2; i++) {
+            float left = samples[i*2] / 32768.0f;
+            float right = samples[i*2+1] / 32768.0f;
+            float combined = (left + right) * 0.5f;
+            float amplified = std::copysign(std::pow(std::abs(combined), 0.7f), combined) * 2.5f;
+            state->audioData[i] = std::clamp(amplified, -1.0f, 1.0f);
+        }
+    }
+}
 
 FreeplayState::FreeplayState() 
     : selectedIndex(0)
@@ -17,13 +34,22 @@ FreeplayState::FreeplayState()
     , subtitleText(nullptr)
     , backgroundPattern(nullptr)
     , itemHeight(80.0f)
-    , scrollOffset(0.0f) {
+    , scrollOffset(0.0f)
+    , currentSound(nullptr) {
     instance = this;
     bgColor = {20, 20, 20, 255};
     dotColor = {100, 100, 150, 100};
+    audioData.resize(AUDIO_BUFFER_SIZE, 0.0f);
+    
+    Mix_SetPostMix(postmix_callback, this);
 }
 
 FreeplayState::~FreeplayState() {
+    Mix_SetPostMix(nullptr, nullptr);
+    if (currentSound) {
+        delete currentSound;
+        currentSound = nullptr;
+    }
     destroy();
 }
 
@@ -32,6 +58,21 @@ void FreeplayState::create() {
     
     Engine* engine = Engine::getInstance();
     
+    sdl2vis::EmbeddedVisualizer::Config visConfig;
+    visConfig.x = 20;
+    visConfig.y = engine->getWindowHeight() - 180;
+    visConfig.width = engine->getWindowWidth() * 0.35f - 40;
+    visConfig.height = 160;
+    visConfig.bar_count = 48;
+    visConfig.background_color = {15, 15, 15, 200};
+    visConfig.bar_color = {100, 100, 150, 255};
+    visConfig.smoothing_factor = 0.15f;
+    
+    visualizer = std::make_unique<sdl2vis::EmbeddedVisualizer>(
+        SDLManager::getInstance().getRenderer(),
+        visConfig
+    );
+
     titleText = new Text();
     titleText->setFormat(Paths::font("vcr.ttf"), 32, 0xFFFFFFFF);
     titleText->setText("The....Freeplay Zone!");
@@ -40,7 +81,7 @@ void FreeplayState::create() {
     
     subtitleText = new Text();
     subtitleText->setFormat(Paths::font("vcr.ttf"), 18, 0xFFFFFFFF);
-    subtitleText->setText("Press R to rescan songs or Press S to search for a song!");
+    subtitleText->setText("Press R to rescan songs or Press Space to play a song's audio!");
     subtitleText->setPosition(20, 60);
     engine->addText(subtitleText);
     
@@ -79,6 +120,8 @@ void FreeplayState::update(float deltaTime) {
     Input::UpdateKeyStates();
     Input::UpdateControllerStates();
     
+    updateVisualizer(deltaTime);
+    
     if (!isTransitioning()) {
         if (Input::justPressed(SDL_SCANCODE_UP)) {
             updateSelection(-1);
@@ -88,11 +131,34 @@ void FreeplayState::update(float deltaTime) {
         }
 
         if (Input::justPressed(SDL_SCANCODE_SPACE)) {
-            Engine::getInstance()->switchState(new FreeplayStateLegacy());
+            if (!audioFiles.empty() && selectedIndex >= 0 && selectedIndex < static_cast<int>(audioFiles.size())) {
+                std::string songName = audioFiles[selectedIndex].filename;
+                std::string audioPath = "assets/charts/" + songName + "/" + songName + ".ogg";
+                
+                SoundManager::getInstance().stopMusic();
+                if (currentSound) {
+                    currentSound->stop();
+                    currentSound = nullptr;
+                }
+                
+                currentSound = new Sound();
+                if (currentSound->load(audioPath)) {
+                    currentSound->setVolume(0.5f);
+                    currentSound->play();
+                } else {
+                    delete currentSound;
+                    currentSound = nullptr;
+                    Log::getInstance().error("Failed to load audio: " + audioPath);
+                }
+            }
         }
         
         if (Input::justPressed(SDL_SCANCODE_R)) {
             rescanSongs();
+        }
+
+        if (Input::justPressed(SDL_SCANCODE_ESCAPE) || Input::justPressed(SDL_SCANCODE_BACKSPACE)) {
+            Engine::getInstance()->switchState(new MainMenuState());
         }
         
         if (Input::justPressed(SDL_SCANCODE_RETURN)) {
@@ -157,10 +223,19 @@ void FreeplayState::render() {
         text->render();
     }
     
+    if (visualizer) {
+        visualizer->render();
+    }
+    
     SwagState::render();
 }
 
 void FreeplayState::destroy() {
+    SoundManager::getInstance().stopMusic();
+    if (currentSound) {
+        currentSound->stop();
+        currentSound = nullptr;
+    }
     fileTexts.clear();
     descriptionTexts.clear();
 }
@@ -252,6 +327,12 @@ void FreeplayState::updateTweens(float deltaTime) {
 }
 
 void FreeplayState::updateSelection(int change) {
+    SoundManager::getInstance().stopMusic();
+    if (currentSound) {
+        currentSound->stop();
+        currentSound = nullptr;
+    }
+
     selectedIndex += change;
     
     if (selectedIndex < 0) {
@@ -331,5 +412,11 @@ void FreeplayState::renderBackground() {
             filledCircleRGBA(renderer, x, y, dotSize, 
                            dotColor.r, dotColor.g, dotColor.b, dotColor.a);
         }
+    }
+}
+
+void FreeplayState::updateVisualizer(float deltaTime) {
+    if (visualizer) {
+        visualizer->update_audio_data(audioData.data(), audioData.size());
     }
 } 

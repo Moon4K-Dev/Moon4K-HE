@@ -7,9 +7,12 @@
 #include "../../engine/input/Input.h"
 #include "../../engine/audio/SoundManager.h"
 #include "../../engine/utils/Paths.h"
+#include "../../../external/sdl2.vis/embedded_visualizer.hpp"
 #include <vector>
 #include <string>
 #include <filesystem>
+
+void SDLCALL postmix_callback(void* udata, Uint8* stream, int len);
 
 struct AudioFile {
     std::string filename;
@@ -31,11 +34,14 @@ public:
     void destroy() override;
 
 private:
+    friend void SDLCALL postmix_callback(void* udata, Uint8* stream, int len);
+
     void loadAudioFiles();
     void updateSelection(int change = 0);
     void renderBackground();
     void updateTweens(float deltaTime);
     void rescanSongs();
+    void updateVisualizer(float deltaTime);
     
     std::vector<AudioFile> audioFiles;
     std::vector<Text*> fileTexts;
@@ -53,4 +59,9 @@ private:
     
     const float TWEEN_SPEED = 8.0f;
     const float MAX_OFFSET = -30.0f;
+
+    std::unique_ptr<sdl2vis::EmbeddedVisualizer> visualizer;
+    std::vector<float> audioData;
+    static const size_t AUDIO_BUFFER_SIZE = 1024;
+    Sound* currentSound;
 }; 
