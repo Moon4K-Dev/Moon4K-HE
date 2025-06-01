@@ -42,7 +42,6 @@ SwagState::~SwagState() {
 }
 
 void SwagState::create() {
-    std::cout << "SwagState::create()" << std::endl;
     startTransitionIn();
 }
 

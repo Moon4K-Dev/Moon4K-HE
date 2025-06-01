@@ -42,6 +42,7 @@
     <ClCompile Include="..\..\src\moon4k\game\Section.cpp" />
     <ClCompile Include="..\..\src\moon4k\game\Song.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\FreeplayState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\FreeplayStateLegacy.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\MainMenuState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\PlayState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\SplashState.cpp" />
@@ -151,7 +152,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\external\ffmpeg\lib;$(ProjectDir)..\..\external\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);discord-rpc.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2main.lib;SDL2test.lib;avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);discord-rpc.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2main.lib;SDL2test.lib;avcodec.lib;SDL2_gfx.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)..\..\assets" "$(TargetDir)\assets\" /E /Y
@@ -181,7 +182,7 @@ xcopy /Y "$(ProjectDir)..\..\external\dll\*.dll" "$(OutDir)"</Command>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\external\ffmpeg\lib;$(ProjectDir)..\..\external\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);discord-rpc.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2main.lib;SDL2test.lib;avcodec.lib;</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);discord-rpc.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2main.lib;SDL2test.lib;avcodec.lib;SDL2_gfx.lib;</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)..\..\assets" "$(TargetDir)\assets\" /E /Y</Command>

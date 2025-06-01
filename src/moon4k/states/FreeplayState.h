@@ -1,38 +1,21 @@
 #pragma once
 
 #include "../SwagState.h"
-#include "../../engine/graphics/Sprite.h"
 #include "../../engine/graphics/Text.h"
-#include "../../engine/utils/Log.h"
-#include "../../engine/utils/Paths.h"
+#include "../../engine/graphics/Sprite.h"
 #include "../../engine/core/Engine.h"
 #include "../../engine/input/Input.h"
-#include "../../engine/core/SDLManager.h"
 #include "../../engine/audio/SoundManager.h"
+#include "../../engine/utils/Paths.h"
 #include <vector>
 #include <string>
 #include <filesystem>
 
-struct SongNote {
-    float strumTime;
-    int direction;
-    float sustainLength;
-};
-
-struct SongSection {
-    bool mustHitSection;
-    float bpm;
-    std::vector<SongNote> sectionNotes;
-};
-
-struct SongData {
-    std::string song;
-    float bpm;
-    float speed;
-    int sections;
-    int keyCount;
-    bool validScore;
-    std::vector<SongSection> notes;
+struct AudioFile {
+    std::string filename;
+    std::string description;
+    float tweenOffset;
+    float targetOffset;
 };
 
 class FreeplayState : public SwagState {
@@ -48,27 +31,26 @@ public:
     void destroy() override;
 
 private:
-    void changeSelection(int change = 0);
-    void updateSongList();
+    void loadAudioFiles();
+    void updateSelection(int change = 0);
+    void renderBackground();
+    void updateTweens(float deltaTime);
     void rescanSongs();
-    void updateSongImage();
-    void loadSongJson(const std::string& songName);
-    void loadSongs();
-
-    std::vector<Text*> songTexts;
-    std::vector<std::string> songs;
-    int curSelected;
     
-    Text* scoreText;
-    Text* missText;
-    Text* diffText;
-    Text* noSongsText;
+    std::vector<AudioFile> audioFiles;
+    std::vector<Text*> fileTexts;
+    std::vector<Text*> descriptionTexts;
+    int selectedIndex;
     
-    Sprite* songImage;
-    Sprite* menuBG;
+    Text* titleText;
+    Text* subtitleText;
+    Sprite* backgroundPattern;
     
-    std::string selectedSong;
-    float songHeight;
+    float itemHeight;
+    float scrollOffset;
+    SDL_Color bgColor;
+    SDL_Color dotColor;
     
-    SongData songData;
-};
+    const float TWEEN_SPEED = 8.0f;
+    const float MAX_OFFSET = -30.0f;
+}; 
