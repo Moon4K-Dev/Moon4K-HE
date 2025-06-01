@@ -50,6 +50,15 @@
     <ClCompile Include="..\..\src\moon4k\ui\StrumNote.cpp" />
     <ClCompile Include="..\..\src\stb_image_impl.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Moon4K.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\moon4kIcon.ico" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
