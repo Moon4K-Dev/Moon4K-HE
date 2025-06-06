@@ -158,6 +158,7 @@ void FreeplayState::update(float deltaTime) {
         }
 
         if (Input::justPressed(SDL_SCANCODE_ESCAPE) || Input::justPressed(SDL_SCANCODE_BACKSPACE)) {
+            startTransitionOut(0.5f);
             Engine::getInstance()->switchState(new MainMenuState());
         }
         

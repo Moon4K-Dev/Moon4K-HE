@@ -46,6 +46,7 @@
     <ClCompile Include="..\..\src\moon4k\states\FreeplayState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\FreeplayStateLegacy.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\MainMenuState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\OnlineDLState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\PlayState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\SplashState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\TitleState.cpp" />

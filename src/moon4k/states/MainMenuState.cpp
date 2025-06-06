@@ -4,6 +4,7 @@
 #include "../../engine/core/SDLManager.h"
 #include "../../engine/utils/Paths.h"
 #include "FreeplayState.h"
+#include "OnlineDLState.h"
 
 MainMenuState::MainMenuState() 
     : titleSprite(nullptr)
@@ -72,6 +73,8 @@ void MainMenuState::update(float deltaTime) {
                     Engine::getInstance()->switchState(new FreeplayState());
                     break;
                 case 1: // online level download shit
+                    startTransitionOut(0.5f);
+                    Engine::getInstance()->switchState(new OnlineDLState());
                     break;
                 case 2: // settigns
                     break;
