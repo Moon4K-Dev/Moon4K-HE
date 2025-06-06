@@ -12,6 +12,7 @@
 #else
 #include "../backend/json.hpp"
 #endif
+#include "FreeplayState.h"
 
 PlayState* PlayState::instance = nullptr;
 SwagSong PlayState::SONG;
@@ -20,15 +21,11 @@ Sound* PlayState::inst = nullptr;
 PlayState::PlayState(const std::string& songName)
     : SwagState()
     , directSongName(songName)
-    , scoreText(nullptr)
     , countdownText(nullptr)
     , loadingText(nullptr)
 {
     instance = this;
     Note::loadAssets();
-    
-    scoreText = new Text();
-    scoreText->setFormat("assets/fonts/vcr.ttf", 32, 0xFFFFFFFF);
     
     countdownText = new Text();
     countdownText->setFormat("assets/fonts/vcr.ttf", 64, 0xFFFFFFFF);
@@ -39,10 +36,10 @@ PlayState::PlayState(const std::string& songName)
     
     int windowWidth = Engine::getInstance()->getWindowWidth();
     int windowHeight = Engine::getInstance()->getWindowHeight();
-    countdownText->setPosition(windowWidth / 2 - 20, windowHeight / 2 - 32);
-    loadingText->setPosition(windowWidth / 2 - 50, windowHeight / 2 - 16);
-    updateScoreText();
+    countdownText->setPosition(static_cast<float>(windowWidth / 2 - 20), static_cast<float>(windowHeight / 2 - 32));
+    loadingText->setPosition(static_cast<float>(windowWidth / 2 - 50), static_cast<float>(windowHeight / 2 - 16));
 
+    ui = std::make_unique<UI>();
     loadKeybinds();
 }
 
@@ -51,18 +48,17 @@ PlayState::~PlayState() {
         delete inst;
         inst = nullptr;
     }
-    
+
     for (auto arrow : strumLineNotes) {
         delete arrow;
     }
     strumLineNotes.clear();
-    
+
     for (auto note : notes) {
         delete note;
     }
     notes.clear();
-    
-    delete scoreText;
+
     delete countdownText;
     delete loadingText;
     Note::unloadAssets();
@@ -73,6 +69,48 @@ void PlayState::create() {
     Engine* engine = Engine::getInstance();
     generateSong(directSongName);
     startingSong = true;
+}
+
+void PlayState::checkAndSetBackground() {
+    std::string daSongswag = SONG.song;
+    std::string imagePath = "assets/charts/" + daSongswag + "/image.png";
+    std::string imagePathAlt = "assets/charts/" + daSongswag + "/" + daSongswag + "-bg.png";
+    std::string imagePathAlt2 = "assets/charts/" + daSongswag + "/" + daSongswag + ".png";
+
+    songBG = std::make_unique<Sprite>();
+    bool bgLoaded = false;
+
+    if (Paths::exists(imagePath)) {
+        songBG->loadTexture(imagePath);
+        bgLoaded = true;
+    }
+    
+    if (!bgLoaded && Paths::exists(imagePathAlt)) {
+        songBG->loadTexture(imagePathAlt);
+        bgLoaded = true;
+    }
+    
+    if (!bgLoaded && Paths::exists(imagePathAlt2)) {
+        songBG->loadTexture(imagePathAlt2);
+        bgLoaded = true;
+    }
+
+    if (bgLoaded) {
+        songBG->setScale(1.1f, 1.1f);
+        int windowWidth = Engine::getInstance()->getWindowWidth();
+        int windowHeight = Engine::getInstance()->getWindowHeight();
+        songBG->setPosition(
+            (windowWidth - songBG->getWidth() * songBG->getScale().x) / 2.0f,
+            (windowHeight - songBG->getHeight() * songBG->getScale().y) / 2.0f
+        );
+        songBG->setVisible(true);
+        songBG->setAlpha(1.0f);
+        Log::getInstance().info("Loaded song background: " + daSongswag);
+        return;
+    }
+
+    Log::getInstance().info("No background found for: " + daSongswag);
+    if (songBG) songBG->setVisible(false);
 }
 
 void PlayState::update(float deltaTime) {
@@ -121,6 +159,7 @@ void PlayState::update(float deltaTime) {
         handleInput();
         handleOpponentNoteHit(deltaTime);
         updateArrowAnimations();
+        updateHealth(deltaTime);
 
         for (auto arrow : strumLineNotes) {
             if (arrow) {
@@ -194,6 +233,17 @@ void PlayState::update(float deltaTime) {
                 Log::getInstance().info("Pause SubState closed");
             }
         }
+
+        ui->setScore(score);
+        ui->setNotesHit(combo);
+        ui->setAccuracy(accuracy / 100.0f);
+        ui->setHealth(health);
+        if (inst && inst->isPlaying()) {
+            float currentTime = Conductor::songPosition / 1000.0f;
+            float totalTime = inst->getDuration();
+            ui->setSongTime(currentTime, totalTime);
+        }
+        ui->update(deltaTime);
     }
 }
 
@@ -285,6 +335,7 @@ void PlayState::generateSong(std::string dataPath) {
             inst = nullptr;
         }
 
+        checkAndSetBackground();
         startCountdown();
         generateNotes();
         
@@ -313,7 +364,7 @@ void PlayState::startCountdown() {
     yPos -= 20;
     
     float totalWidth = laneOffset * (keyCount - 1);
-    float startX = (windowWidth - totalWidth) / 2.0f;
+    float startX = (windowWidth / 2.0f) - (totalWidth / 2.0f) - 45;
     
     for (int i = 0; i < keyCount; i++) {
         std::string noteskin = GameConfig::getInstance()->getNoteskin();
@@ -326,10 +377,19 @@ void PlayState::startCountdown() {
 }
 
 void PlayState::render() {
+    if (defaultBG && defaultBG->isVisible()) {
+        defaultBG->render();
+    }
+    if (songBG && songBG->isVisible()) {
+        songBG->render();
+    }
+
     if (isLoading) {
         loadingText->render();
         return;
     }
+
+    ui->render();
 
     for (auto arrow : strumLineNotes) {
         if (arrow && arrow->isVisible()) {
@@ -342,8 +402,6 @@ void PlayState::render() {
             note->render();
         }
     }
-
-    scoreText->render();
     
     if (isCountingDown) {
         countdownText->render();
@@ -351,7 +409,6 @@ void PlayState::render() {
 
     static int lastNoteCount = 0;
     if (notes.size() != lastNoteCount) {
-        //Log::getInstance().info("Active notes: " + std::to_string(notes.size()));
         lastNoteCount = notes.size();
     }
 
@@ -368,9 +425,7 @@ void PlayState::generateNotes() {
     Log::getInstance().info("Generating notes from " + std::to_string(SONG.notes.size()) + " sections");
 
     int totalNotes = 0;
-    for (const auto& section : SONG.notes) {
-        //Log::getInstance().info("Processing section with " + std::to_string(section.sectionNotes.size()) + " notes");
-        
+    for (const auto& section : SONG.notes) {        
         Conductor::recalculateStuff(1.0f);
 
         for (const auto& noteData : section.sectionNotes) {
@@ -413,11 +468,6 @@ void PlayState::generateNotes() {
                 totalNotes++;
 
                 float susLength = sustainLength / Conductor::stepCrochet;
-                
-                if (susLength > 0) {
-                    //Log::getInstance().info("Creating sustain note with length " + std::to_string(susLength));
-                }
-                
                 for (int susNote = 0; susNote < static_cast<int>(susLength); susNote++) {
                     oldNote = spawnNotes.back();
 
@@ -436,7 +486,7 @@ void PlayState::generateNotes() {
 
                     oldNote->nextNote = sustainNote;
                     spawnNotes.push_back(sustainNote);
-                totalNotes++;
+                    totalNotes++;
                 }
             }
         }
@@ -482,7 +532,6 @@ void PlayState::updateRank() {
 }
 
 void PlayState::destroy() {
-    scoreText = nullptr;
     score = 0;
     accuracy = 0.0f;
     misses = 0;
@@ -494,18 +543,6 @@ void PlayState::destroy() {
 void PlayState::openSubState(SubState* subState) {
     std::cout << "PlayState::openSubState called" << std::endl;
     State::openSubState(subState);
-}
-
-void PlayState::updateScoreText() {
-    char accuracyStr[10];
-    snprintf(accuracyStr, sizeof(accuracyStr), "%.2f", accuracy);
-    std::string text = "Score: " + std::to_string(score) + " Misses: " + std::to_string(misses) + " Accuracy: " + accuracyStr + "%";
-    scoreText->setText(text);
-    
-    int windowWidth = Engine::getInstance()->getWindowWidth();
-    int windowHeight = Engine::getInstance()->getWindowHeight();
-    float textWidth = scoreText->getWidth();
-    scoreText->setPosition((windowWidth - textWidth) / 2, windowHeight - 50);
 }
 
 void PlayState::goodNoteHit(Note* note) {
@@ -529,8 +566,8 @@ void PlayState::goodNoteHit(Note* note) {
         if (!note->isSustainNote) {
             totalNotesHit++;
             updateAccuracy();
+            gainHealth();
         }
-        updateScoreText();
         
         if (!note->isSustainNote) {
             note->kill = true;
@@ -547,7 +584,7 @@ void PlayState::noteMiss(int direction) {
     score -= 10;
     if (score < 0) score = 0;
     updateAccuracy();
-    updateScoreText();
+    loseHealth();
 }
 
 void PlayState::loadKeybinds() {
@@ -716,5 +753,51 @@ void PlayState::handleOpponentNoteHit(float deltaTime) {
             isAnimating = false;
             currentArrowIndex = -1;
         }
+    }
+}
+
+void PlayState::updateHealth(float deltaTime) {
+    if (isDead) return;
+
+    health -= HEALTH_DRAIN * deltaTime;
+    health = std::clamp(health, 0.0f, 1.0f);
+
+    if (health <= 0.0f) {
+        isDead = true;
+        health = 0.0f;
+        // might make an actual game over state later
+        if (inst) {
+            inst->stop();
+            delete inst;
+            inst = nullptr;
+        }
+        SoundManager::getInstance().stopMusic();
+        startTransitionOut(0.5f);
+        Engine::getInstance()->switchState(new FreeplayState());
+    }
+}
+
+void PlayState::gainHealth() {
+    if (isDead) return;
+    health += HEALTH_GAIN;
+    health = std::clamp(health, 0.0f, 1.0f);
+}
+
+void PlayState::loseHealth() {
+    if (isDead) return;
+    health -= HEALTH_LOSS;
+    health = std::clamp(health, 0.0f, 1.0f);
+
+    if (health <= 0.0f) {
+        isDead = true;
+        // might make an actual game over state later
+        if (inst) {
+            inst->stop();
+            delete inst;
+            inst = nullptr;
+        }
+        SoundManager::getInstance().stopMusic();
+        startTransitionOut(0.5f);
+        Engine::getInstance()->switchState(new FreeplayState());
     }
 }

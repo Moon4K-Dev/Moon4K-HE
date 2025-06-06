@@ -139,7 +139,7 @@ void Engine::switchState(State* state) {
         states.pop();
         
         oldState->destroy();
-        delete oldState;
+        //delete oldState; // Errr causes a crash in playstate lol
         
         try {
             for (size_t i = 0; i < sprites.size(); ++i) {

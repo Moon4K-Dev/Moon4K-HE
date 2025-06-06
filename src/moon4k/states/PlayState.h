@@ -15,6 +15,7 @@
 #include "../../engine/graphics/Text.h"
 #include "../../engine/core/Engine.h"
 #include "../ui/StrumNote.h"
+#include "../ui/UI.h"
 #include <vector>
 #include <array>
 #include <string>
@@ -68,12 +69,21 @@ public:
     bool pfc = false;
     std::string curRank = "P";
 
+    float health = 1.0f;
+    const float HEALTH_GAIN = 0.1f;
+    const float HEALTH_LOSS = 0.04f;
+    const float HEALTH_DRAIN = 0.005f;
+    bool isDead = false;
+
 private:
     std::string directSongName;
     int sections = 0;
     std::vector<SwagSection> sectionLengths;
     int keyCount = 4;
     std::vector<int> timescale;
+    
+    std::unique_ptr<Sprite> defaultBG;
+    std::unique_ptr<Sprite> songBG;
     
     bool isLoading = true;
     bool isCountingDown = false;
@@ -95,6 +105,7 @@ private:
     void loadKeybinds();
     void loadSongConfig();
     void handleOpponentNoteHit(float deltaTime);
+    void checkAndSetBackground();
     SDL_Scancode getScancodeFromString(const std::string& keyName);
     SDL_GameControllerButton getButtonFromString(const std::string& buttonName);
     void updateAccuracy();
@@ -132,7 +143,10 @@ private:
 
     void handleInput();
     void updateArrowAnimations();
-    Text* scoreText;
-    void updateScoreText();
+    std::unique_ptr<UI> ui;
     float pauseCooldown = 0.0f;
+
+    void updateHealth(float deltaTime);
+    void gainHealth();
+    void loseHealth();
 };

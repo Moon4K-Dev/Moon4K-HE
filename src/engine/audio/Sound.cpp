@@ -74,3 +74,21 @@ bool Sound::isPlaying() const {
     if (!isLoaded || channel == -1) return false;
     return Mix_Playing(channel) && !Mix_Paused(channel);
 }
+
+float Sound::getDuration() const {
+    if (!isLoaded || !sound) return 0.0f;
+    
+    int frequency;
+    Uint16 format;
+    int channels;
+    Mix_QuerySpec(&frequency, &format, &channels);
+    
+    int bytesPerSample = 2;
+    if (format == AUDIO_U8 || format == AUDIO_S8) {
+        bytesPerSample = 1;
+    }
+    
+    Uint32 points = sound->alen / (bytesPerSample * channels);
+    float duration = static_cast<float>(points) / static_cast<float>(frequency);
+    return duration;
+}

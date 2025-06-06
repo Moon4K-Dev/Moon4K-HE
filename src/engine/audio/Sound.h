@@ -15,6 +15,7 @@ public:
     void setVolume(float volume);
     void setLoop(bool loop);
     bool isPlaying() const;
+    float getDuration() const;
 
 private:
     Mix_Chunk* sound;
