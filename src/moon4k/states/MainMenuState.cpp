@@ -5,6 +5,7 @@
 #include "../../engine/utils/Paths.h"
 #include "FreeplayState.h"
 #include "OnlineDLState.h"
+#include "OptionsState.h"
 
 MainMenuState::MainMenuState() 
     : titleSprite(nullptr)
@@ -77,6 +78,8 @@ void MainMenuState::update(float deltaTime) {
                     Engine::getInstance()->switchState(new OnlineDLState());
                     break;
                 case 2: // settigns
+                    startTransitionOut(0.5f);
+                    Engine::getInstance()->switchState(new OptionsState());
                     break;
                 case 3: // quitting the game
                     Engine::getInstance()->quit();

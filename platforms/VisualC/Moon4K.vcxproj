@@ -43,11 +43,15 @@
     <ClCompile Include="..\..\src\moon4k\game\Note.cpp" />
     <ClCompile Include="..\..\src\moon4k\game\Section.cpp" />
     <ClCompile Include="..\..\src\moon4k\game\Song.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\ControlsOptionsState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\FreeplayState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\FreeplayStateLegacy.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\GameplayOptionsState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\MainMenuState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\OnlineDLState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\OptionsState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\PlayState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\SkinOptionsState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\SplashState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\TitleState.cpp" />
     <ClCompile Include="..\..\src\moon4k\substates\PauseSubState.cpp" />

@@ -37,6 +37,9 @@
     <Filter Include="Source Files\miniz">
       <UniqueIdentifier>{097ae6aa-c6ea-4662-a291-45601bd9ab6f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\moon4k\states\options">
+      <UniqueIdentifier>{098d9a52-033d-4490-8f5f-ee66e6e101fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp">
@@ -149,6 +152,18 @@
     </ClCompile>
     <ClCompile Include="..\..\src\moon4k\substates\ResultsSubState.cpp">
       <Filter>Source Files\moon4k\substates</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\OptionsState.cpp">
+      <Filter>Source Files\moon4k\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\GameplayOptionsState.cpp">
+      <Filter>Source Files\moon4k\states\options</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\SkinOptionsState.cpp">
+      <Filter>Source Files\moon4k\states\options</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\ControlsOptionsState.cpp">
+      <Filter>Source Files\moon4k\states\options</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

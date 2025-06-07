@@ -23,12 +23,12 @@ SplashState::SplashState()
     instance = this;
     
     introTexts = {
-        "Look Ma, I'm in a video game!",
+        "Wouldn't be here without Funkin'.",
         "Swag Swag Cool Shit",
         "I love ninjamuffin99",
         "Follow @maybekoi_ on twitter!",
         "Inspired by FNF and OSU!Mania",
-        "The first o in the Moon 4k logo stole government files, das why it's hidden lol!"
+        "The first o in the Moon4K logo stole government files, das why it's hidden lol!"
     };
 }
 
