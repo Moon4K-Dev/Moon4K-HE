@@ -147,6 +147,9 @@
     <ClCompile Include="..\..\src\moon4k\ui\UI.cpp">
       <Filter>Source Files\moon4k\ui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\substates\ResultsSubState.cpp">
+      <Filter>Source Files\moon4k\substates</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

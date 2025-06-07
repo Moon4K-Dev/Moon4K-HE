@@ -51,6 +51,7 @@ public:
     void goodNoteHit(Note* note);
     void noteMiss(int direction);
     void sortByShit(Note* a, Note* b);
+    void endSong();
 
     static PlayState* instance;
     static SwagSong SONG;

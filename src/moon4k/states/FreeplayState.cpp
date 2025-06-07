@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 #include "../backend/json.hpp"
 #include <cmath>
 
@@ -101,7 +102,8 @@ void FreeplayState::create() {
         
         Text* descText = new Text();
         descText->setFormat(Paths::font("vcr.ttf"), 16, 0xAAAAAA);
-        descText->setText(audio.description);
+        std::string wrappedDesc = wrapText(audio.description, sidebarWidth - 60, 16);
+        descText->setText(wrappedDesc);
         descText->setPosition(sidebarX + 40, yPos + 25);
         engine->addText(descText);
         descriptionTexts.push_back(descText);
@@ -253,17 +255,31 @@ void FreeplayState::loadAudioFiles() {
     for (const auto& entry : std::filesystem::directory_iterator(chartsDir)) {
         if (entry.is_directory()) {
             std::string songName = entry.path().filename().string();
-            
-            std::string moonPath = chartsDir + songName + "/" + songName + ".moon";
-            std::string configPath = chartsDir + songName + "/chartConfig.json";
-            std::transform(moonPath.begin(), moonPath.end(), moonPath.begin(), ::tolower);
-            
             std::string displayName = songName;
             std::string description = "";
             std::string artist = "";
             float bpm = 0.0f;
+            std::string format = "Unknown";
+            
+            std::vector<std::pair<std::string, std::string>> formats = {
+                {".moon", "Moon4K"},
+                {".osu", "osu!mania"},
+                {".json", "FNF"},
+                {".sm", "StepMania"}
+            };
+
+            std::string foundFormat;
+            for (const auto& [ext, formatName] : formats) {
+                std::string chartPath = chartsDir + songName + "/" + songName + ext;
+                std::transform(chartPath.begin(), chartPath.end(), chartPath.begin(), ::tolower);
+                if (std::filesystem::exists(chartPath)) {
+                    format = formatName;
+                    break;
+                }
+            }
             
             try {
+                std::string configPath = chartsDir + songName + "/chartConfig.json";
                 std::ifstream configFile(configPath);
                 if (configFile.is_open()) {
                     json config;
@@ -277,6 +293,8 @@ void FreeplayState::loadAudioFiles() {
                     }
                 }
 
+                std::string moonPath = chartsDir + songName + "/" + songName + ".moon";
+                std::transform(moonPath.begin(), moonPath.end(), moonPath.begin(), ::tolower);
                 std::ifstream moonFile(moonPath);
                 if (moonFile.is_open()) {
                     json j;
@@ -291,12 +309,13 @@ void FreeplayState::loadAudioFiles() {
                 if (bpm > 0) {
                     finalDescription += " | BPM: " + std::to_string(static_cast<int>(bpm));
                 }
+                finalDescription += " | Format: " + format;
 
                 audioFiles.push_back({displayName, finalDescription, 0.0f, 0.0f});
                 
             } catch (const std::exception& e) {
                 Log::getInstance().error("Error parsing song JSON: " + std::string(e.what()));
-                audioFiles.push_back({songName, "No song data available", 0.0f, 0.0f});
+                audioFiles.push_back({songName, "No song data available | Format: " + format, 0.0f, 0.0f});
             }
         }
     }
@@ -322,6 +341,11 @@ void FreeplayState::updateTweens(float deltaTime) {
             float yPos = 150.0f - scrollOffset + (i * itemHeight);
             
             fileTexts[i]->setPosition(sidebarX + 20 + file.tweenOffset, yPos);
+            
+            std::string descText = descriptionTexts[i]->getText();
+            int descLines = std::count(descText.begin(), descText.end(), '\n') + 1;
+            float descHeight = descLines * 20.0f;
+            
             descriptionTexts[i]->setPosition(sidebarX + 40 + file.tweenOffset, yPos + 25);
         }
     }
@@ -388,7 +412,8 @@ void FreeplayState::rescanSongs() {
         
         Text* descText = new Text();
         descText->setFormat(Paths::font("vcr.ttf"), 16, 0xAAAAAA);
-        descText->setText(audio.description);
+        std::string wrappedDesc = wrapText(audio.description, sidebarWidth - 60, 16);
+        descText->setText(wrappedDesc);
         descText->setPosition(sidebarX + 40, yPos + 25);
         engine->addText(descText);
         descriptionTexts.push_back(descText);
@@ -420,4 +445,42 @@ void FreeplayState::updateVisualizer(float deltaTime) {
     if (visualizer) {
         visualizer->update_audio_data(audioData.data(), audioData.size());
     }
+}
+
+std::string FreeplayState::wrapText(const std::string& text, float maxWidth, int fontSize) {
+    std::istringstream words(text);
+    std::string word;
+    std::string line;
+    std::string result;
+    float lineWidth = 0;
+    float spaceWidth = fontSize * 0.5f;
+    
+    while (words >> word) {
+        float wordWidth = word.length() * fontSize * 0.7f;
+        
+        if (lineWidth + wordWidth <= maxWidth) {
+            if (!line.empty()) {
+                line += " ";
+                lineWidth += spaceWidth;
+            }
+            line += word;
+            lineWidth += wordWidth;
+        } else {
+            if (!result.empty()) {
+                result += "\n";
+            }
+            result += line;
+            line = word;
+            lineWidth = wordWidth;
+        }
+    }
+    
+    if (!line.empty()) {
+        if (!result.empty()) {
+            result += "\n";
+        }
+        result += line;
+    }
+    
+    return result;
 } 

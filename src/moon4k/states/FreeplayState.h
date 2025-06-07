@@ -42,6 +42,7 @@ private:
     void updateTweens(float deltaTime);
     void rescanSongs();
     void updateVisualizer(float deltaTime);
+    std::string wrapText(const std::string& text, float maxWidth, int fontSize);
     
     std::vector<AudioFile> audioFiles;
     std::vector<Text*> fileTexts;

@@ -1,33 +1,63 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "Section.h"
+#include <memory>
+#include "Tsukiyo/Chart.hpp"
+#include "Tsukiyo/ChartLoader.hpp"
+#include "Tsukiyo/ChartConverter.hpp"
+
+struct SwagSection {
+    int lengthInSteps;
+    bool mustHitSection;
+    int typeOfSection;
+    bool changeBPM;
+    float bpm;
+    std::vector<std::vector<float>> sectionNotes;
+
+    SwagSection() 
+        : lengthInSteps(16)
+        , mustHitSection(true)
+        , typeOfSection(0)
+        , changeBPM(false)
+        , bpm(0.0f) {}
+};
 
 struct SwagSong {
     std::string song;
-    std::vector<SwagSection> notes;
     float bpm;
-    int sections;
-    std::vector<SwagSection> sectionLengths;
     float speed;
+    int sections;
     int keyCount;
+    bool validScore;
+    std::vector<SwagSection> notes;
+    std::vector<SwagSection> sectionLengths;
     std::vector<int> timescale;
-    bool validScore = false;
+
+    SwagSong() 
+        : song("")
+        , bpm(100.0f)
+        , speed(1.0f)
+        , sections(0)
+        , keyCount(4)
+        , validScore(false) {}
 };
 
 class Song {
 public:
+    Song(const std::string& song, const std::vector<SwagSection>& notes, float bpm, int sections, int keyCount, const std::vector<int>& timescale);
+    static SwagSong loadFromJson(const std::string& songName, const std::string& folder = "");
+    static SwagSong parseJSONshit(const std::string& rawJson);
+
+private:
     std::string song;
     std::vector<SwagSection> notes;
     float bpm;
     int sections;
-    std::vector<SwagSection> sectionLengths;
-    float speed;
     int keyCount;
     std::vector<int> timescale;
+    float speed;
+    std::vector<SwagSection> sectionLengths;
 
-    Song(const std::string& song, const std::vector<SwagSection>& notes, float bpm, int sections, int keyCount, const std::vector<int>& timescale = std::vector<int>());
-
-    static SwagSong loadFromJson(const std::string& jsonInput, const std::string& folder = "");
-    static SwagSong parseJSONshit(const std::string& rawJson);
+    static SwagSong convertTsukiyoToSwagSong(const Tsukiyo::Chart& chart);
+    static std::string getFileExtension(const std::string& path);
 }; 

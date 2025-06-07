@@ -13,6 +13,7 @@
 #include "../backend/json.hpp"
 #endif
 #include "FreeplayState.h"
+#include "../substates/ResultsSubState.h"
 
 PlayState* PlayState::instance = nullptr;
 SwagSong PlayState::SONG;
@@ -153,6 +154,11 @@ void PlayState::update(float deltaTime) {
         _subStates.back()->update(deltaTime);
     } 
     else {
+        if (inst && !inst->isPlaying() && !startingSong && !isLoading && !isCountingDown) {
+            endSong();
+            return;
+        }
+
         Input::UpdateKeyStates();
         Input::UpdateControllerStates();
 
@@ -232,6 +238,10 @@ void PlayState::update(float deltaTime) {
                 closeSubState();
                 Log::getInstance().info("Pause SubState closed");
             }
+        }
+
+        if (Input::justPressed(SDL_SCANCODE_SPACE)) {
+            endSong();
         }
 
         ui->setScore(score);
@@ -800,4 +810,15 @@ void PlayState::loseHealth() {
         startTransitionOut(0.5f);
         Engine::getInstance()->switchState(new FreeplayState());
     }
+}
+
+void PlayState::endSong() {
+    if (inst) {
+        inst->stop();
+    }
+    
+    ResultsSubState* resultsSubState = new ResultsSubState();    
+    resultsSubState->setStats(score, misses, accuracy, totalNotesHit, curRank);    
+    openSubState(resultsSubState);
+    Log::getInstance().info("Song ended, showing results");
 }

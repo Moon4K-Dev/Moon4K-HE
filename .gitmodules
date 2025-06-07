@@ -4,3 +4,6 @@
 [submodule "external/sdl2.vis"]
 	path = external/sdl2.vis
 	url = https://github.com/hamburgerEngine/sdl2.vis
+[submodule "external/Tsukiyo"]
+	path = external/Tsukiyo
+	url = https://github.com/Moon4K-Dev/Tsukiyo

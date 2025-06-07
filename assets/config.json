@@ -27,7 +27,7 @@
         "downscroll": false,
         "ghostTapping": true,
         "noteskin": "default",
-        "scrollSpeed": 1.0,
+        "scrollSpeed": 3.0,
         "songOffset": 0.0
     }
 }
