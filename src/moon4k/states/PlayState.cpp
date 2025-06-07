@@ -21,9 +21,10 @@ SwagSong PlayState::SONG;
 Sound* PlayState::inst = nullptr;
 Sound* PlayState::voices = nullptr;
 
-PlayState::PlayState(const std::string& songName)
+PlayState::PlayState(const std::string& songName, const std::string& difficulty)
     : SwagState()
     , directSongName(songName)
+    , selectedDifficulty(difficulty)
     , countdownText(nullptr)
     , loadingText(nullptr)
 {
@@ -320,24 +321,27 @@ void PlayState::generateSong(std::string dataPath) {
         std::string folder = dataPath;
         std::string baseSongName = dataPath;
         
-        SONG = Song::loadFromJson(songName, folder);
-        if (!SONG.validScore) {
-            Log::getInstance().error("Failed to load song data");
-            return;
+        std::string smPath = "assets/charts/" + baseSongName + "/" + baseSongName + ".sm";
+        if (std::filesystem::exists(smPath)) {
+            SONG = Song::loadFromJson(songName, folder, selectedDifficulty);
+            if (!SONG.validScore) {
+                Log::getInstance().error("Failed to load StepMania chart");
+                throw std::runtime_error("Failed to load StepMania chart");
+            }
+        } else {
+            SONG = Song::loadFromJson(songName, folder);
         }
-        
+
+        if (!SONG.validScore) {
+            throw std::runtime_error("Invalid score data");
+        }
+
         Conductor::changeBPM(SONG.bpm);
         curSong = songName;
         sections = SONG.sections;
         sectionLengths = SONG.sectionLengths;
         keyCount = SONG.keyCount ? SONG.keyCount : 4;
         timescale = SONG.timescale;
-
-        std::cout << "Generated song: " << curSong 
-                  << " BPM: " << SONG.bpm 
-                  << " Speed: " << SONG.speed 
-                  << " Key Count: " << keyCount 
-                  << " Sections: " << sections << std::endl;
 
         if (inst != nullptr) {
             delete inst;

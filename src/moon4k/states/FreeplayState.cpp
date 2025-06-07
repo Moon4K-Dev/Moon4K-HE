@@ -31,6 +31,9 @@ void SDLCALL postmix_callback(void* udata, Uint8* stream, int len) {
 
 FreeplayState::FreeplayState() 
     : selectedIndex(0)
+    , selectedDifficulty(0)
+    , difficultyPanelOffset(-300.0f)
+    , showingDifficulties(false)
     , titleText(nullptr)
     , subtitleText(nullptr)
     , backgroundPattern(nullptr)
@@ -58,6 +61,8 @@ void FreeplayState::create() {
     SwagState::create();
     
     Engine* engine = Engine::getInstance();
+    int windowWidth = engine->getWindowWidth();
+    int windowHeight = engine->getWindowHeight();
     
     sdl2vis::EmbeddedVisualizer::Config visConfig;
     visConfig.x = 20;
@@ -113,6 +118,9 @@ void FreeplayState::create() {
     
     updateSelection();
 
+    selectedDifficulty = 0;
+    showingDifficulties = false;
+
     Discord::GetInstance().SetDetails("Selecting a song...(in the Freeplay Zone!)");
     Discord::GetInstance().Update();
 }
@@ -125,53 +133,95 @@ void FreeplayState::update(float deltaTime) {
     updateVisualizer(deltaTime);
     
     if (!isTransitioning()) {
-        if (Input::justPressed(SDL_SCANCODE_UP)) {
-            updateSelection(-1);
-        }
-        if (Input::justPressed(SDL_SCANCODE_DOWN)) {
-            updateSelection(1);
-        }
-
-        if (Input::justPressed(SDL_SCANCODE_SPACE)) {
-            if (!audioFiles.empty() && selectedIndex >= 0 && selectedIndex < static_cast<int>(audioFiles.size())) {
-                std::string songName = audioFiles[selectedIndex].filename;
-                std::string audioPath = "assets/charts/" + songName + "/" + songName + ".ogg";
-                
-                SoundManager::getInstance().stopMusic();
-                if (currentSound) {
-                    currentSound->stop();
-                    currentSound = nullptr;
+        if (showingDifficulties) {
+            if (Input::justPressed(SDL_SCANCODE_UP)) {
+                selectedDifficulty--;
+                if (selectedDifficulty < 0) {
+                    selectedDifficulty = audioFiles[selectedIndex].difficulties.size() - 1;
                 }
-                
-                currentSound = new Sound();
-                if (currentSound->load(audioPath)) {
-                    currentSound->setVolume(0.5f);
-                    currentSound->play();
-                } else {
-                    delete currentSound;
-                    currentSound = nullptr;
-                    Log::getInstance().error("Failed to load audio: " + audioPath);
-                }
+                updateDifficultySelection();
             }
-        }
-        
-        if (Input::justPressed(SDL_SCANCODE_R)) {
-            rescanSongs();
-        }
-
-        if (Input::justPressed(SDL_SCANCODE_ESCAPE) || Input::justPressed(SDL_SCANCODE_BACKSPACE)) {
-            startTransitionOut(0.5f);
-            Engine::getInstance()->switchState(new MainMenuState());
-        }
-        
-        if (Input::justPressed(SDL_SCANCODE_RETURN)) {
-            if (!audioFiles.empty() && selectedIndex >= 0 && selectedIndex < static_cast<int>(audioFiles.size())) {
+            if (Input::justPressed(SDL_SCANCODE_DOWN)) {
+                selectedDifficulty++;
+                if (selectedDifficulty >= static_cast<int>(audioFiles[selectedIndex].difficulties.size())) {
+                    selectedDifficulty = 0;
+                }
+                updateDifficultySelection();
+            }
+            if (Input::justPressed(SDL_SCANCODE_RETURN)) {
+                showingDifficulties = false;
                 SoundManager::getInstance().stopMusic();
                 startTransitionOut(0.5f);
                 std::string selectedSong = audioFiles[selectedIndex].filename;
-                Engine::getInstance()->switchState(new PlayState(selectedSong));
+                std::string selectedDiff = audioFiles[selectedIndex].difficulties[selectedDifficulty];
+                if (!selectedDiff.empty() && selectedDiff.back() == ':') {
+                    selectedDiff.pop_back();
+                }
+                Engine::getInstance()->switchState(new PlayState(selectedSong, selectedDiff));
+            }
+            if (Input::justPressed(SDL_SCANCODE_ESCAPE)) {
+                showingDifficulties = false;
+            }
+        } else {
+            if (Input::justPressed(SDL_SCANCODE_UP)) {
+                updateSelection(-1);
+            }
+            if (Input::justPressed(SDL_SCANCODE_DOWN)) {
+                updateSelection(1);
+            }
+
+            if (Input::justPressed(SDL_SCANCODE_SPACE)) {
+                if (!audioFiles.empty() && selectedIndex >= 0 && selectedIndex < static_cast<int>(audioFiles.size())) {
+                    std::string songName = audioFiles[selectedIndex].filename;
+                    std::string audioPath = "assets/charts/" + songName + "/" + songName + ".ogg";
+                    
+                    SoundManager::getInstance().stopMusic();
+                    if (currentSound) {
+                        currentSound->stop();
+                        currentSound = nullptr;
+                    }
+                    
+                    currentSound = new Sound();
+                    if (currentSound->load(audioPath)) {
+                        currentSound->setVolume(0.5f);
+                        currentSound->play();
+                    } else {
+                        delete currentSound;
+                        currentSound = nullptr;
+                        Log::getInstance().error("Failed to load audio: " + audioPath);
+                    }
+                }
+            }
+            
+            if (Input::justPressed(SDL_SCANCODE_R)) {
+                rescanSongs();
+            }
+
+            if (Input::justPressed(SDL_SCANCODE_ESCAPE) || Input::justPressed(SDL_SCANCODE_BACKSPACE)) {
+                startTransitionOut(0.5f);
+                Engine::getInstance()->switchState(new MainMenuState());
+            }
+            
+            if (Input::justPressed(SDL_SCANCODE_RETURN)) {
+                if (!audioFiles.empty() && selectedIndex >= 0 && selectedIndex < static_cast<int>(audioFiles.size())) {
+                    if (audioFiles[selectedIndex].format == "StepMania" && !audioFiles[selectedIndex].difficulties.empty()) {
+                        showingDifficulties = true;
+                        selectedDifficulty = 0;
+                        updateDifficultySelection();
+                    } else {
+                        SoundManager::getInstance().stopMusic();
+                        startTransitionOut(0.5f);
+                        std::string selectedSong = audioFiles[selectedIndex].filename;
+                        Engine::getInstance()->switchState(new PlayState(selectedSong));
+                    }
+                }
             }
         }
+        
+        float targetOffset = showingDifficulties ? 0.0f : -300.0f;
+        difficultyPanelOffset += (targetOffset - difficultyPanelOffset) * 8.0f * deltaTime;
+        
+        updateTweens(deltaTime);
     }
     
     updateTweens(deltaTime);
@@ -228,6 +278,35 @@ void FreeplayState::render() {
     
     if (visualizer) {
         visualizer->render();
+    }
+    
+    if (difficultyPanelOffset > -290.0f) {
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 200);
+        SDL_Rect panel = {
+            0,
+            static_cast<int>(difficultyPanelOffset),
+            engine->getWindowWidth(),
+            300
+        };
+        SDL_RenderFillRect(renderer, &panel);
+        
+        if (!audioFiles.empty() && selectedIndex >= 0) {
+            float baseY = difficultyPanelOffset + 20;
+            for (size_t i = 0; i < audioFiles[selectedIndex].difficulties.size(); i++) {
+                SDL_Color color = (i == static_cast<size_t>(selectedDifficulty)) ? 
+                    SDL_Color{255, 255, 0, 255} : SDL_Color{255, 255, 255, 255};
+                
+                Text diffText;
+                diffText.setFormat(Paths::font("vcr.ttf"), 24, (color.r << 24) | (color.g << 16) | (color.b << 8) | color.a);
+                diffText.setText(audioFiles[selectedIndex].difficulties[i]);
+                diffText.setPosition(
+                    (engine->getWindowWidth() - diffText.getWidth()) / 2,
+                    baseY + i * 40
+                );
+                diffText.render();
+            }
+        }
     }
     
     SwagState::render();
@@ -311,11 +390,49 @@ void FreeplayState::loadAudioFiles() {
                 }
                 finalDescription += " | Format: " + format;
 
-                audioFiles.push_back({displayName, finalDescription, 0.0f, 0.0f});
+                std::vector<std::string> difficulties;
+                if (format == "StepMania") {
+                    std::string smPath = chartsDir + songName + "/" + songName + ".sm";
+                    std::transform(smPath.begin(), smPath.end(), smPath.begin(), ::tolower);
+                    std::ifstream smFile(smPath);
+                    if (smFile.is_open()) {
+                        std::string line;
+                        while (std::getline(smFile, line)) {
+                            line = trim(line);
+                            if (line.starts_with("#NOTES:")) {
+                                std::string diffLine;
+                                std::getline(smFile, diffLine);
+                                std::getline(smFile, diffLine);
+                                std::getline(smFile, diffLine);
+                                diffLine = trim(diffLine);
+                                if (!diffLine.empty() && diffLine.back() == ':') {
+                                    diffLine.pop_back();
+                                }
+                                difficulties.push_back(diffLine);
+                            }
+                        }
+                    }
+                }
+
+                audioFiles.push_back({
+                    displayName, 
+                    finalDescription, 
+                    0.0f, 
+                    0.0f,
+                    format,
+                    difficulties
+                });
                 
             } catch (const std::exception& e) {
                 Log::getInstance().error("Error parsing song JSON: " + std::string(e.what()));
-                audioFiles.push_back({songName, "No song data available | Format: " + format, 0.0f, 0.0f});
+                audioFiles.push_back({
+                    songName, 
+                    "No song data available | Format: " + format, 
+                    0.0f, 
+                    0.0f,
+                    format,
+                    std::vector<std::string>()
+                });
             }
         }
     }
@@ -483,4 +600,13 @@ std::string FreeplayState::wrapText(const std::string& text, float maxWidth, int
     }
     
     return result;
+}
+
+void FreeplayState::updateDifficultySelection() {}
+
+std::string FreeplayState::trim(const std::string& str) {
+    size_t first = str.find_first_not_of(" \t\n\r");
+    if (first == std::string::npos) return "";
+    size_t last = str.find_last_not_of(" \t\n\r");
+    return str.substr(first, (last - first + 1));
 } 

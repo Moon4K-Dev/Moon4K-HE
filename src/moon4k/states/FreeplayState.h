@@ -19,6 +19,8 @@ struct AudioFile {
     std::string description;
     float tweenOffset;
     float targetOffset;
+    std::string format;
+    std::vector<std::string> difficulties;
 };
 
 class FreeplayState : public SwagState {
@@ -43,11 +45,16 @@ private:
     void rescanSongs();
     void updateVisualizer(float deltaTime);
     std::string wrapText(const std::string& text, float maxWidth, int fontSize);
+    void updateDifficultySelection();
+    static std::string trim(const std::string& str);
     
     std::vector<AudioFile> audioFiles;
     std::vector<Text*> fileTexts;
     std::vector<Text*> descriptionTexts;
     int selectedIndex;
+    int selectedDifficulty;
+    float difficultyPanelOffset;
+    bool showingDifficulties;
     
     Text* titleText;
     Text* subtitleText;

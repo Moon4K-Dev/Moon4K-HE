@@ -27,7 +27,7 @@ std::string Song::getFileExtension(const std::string& path) {
     return ext;
 }
 
-SwagSong Song::loadFromJson(const std::string& songName, const std::string& folder) {
+SwagSong Song::loadFromJson(const std::string& songName, const std::string& folder, const std::string& difficulty) {
     std::string actualFolder = folder;
     std::string lowerFolder = actualFolder;
     std::string lowerSongName = songName;
@@ -48,16 +48,16 @@ SwagSong Song::loadFromJson(const std::string& songName, const std::string& fold
         std::ifstream file(moonPath);
         if (file.is_open()) {
             std::string rawJson((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    file.close();
+            file.close();
 
-    while (!rawJson.empty() && std::isspace(rawJson.back())) {
-        rawJson.pop_back();
-    }
-    while (!rawJson.empty() && rawJson.back() != '}') {
-        rawJson.pop_back();
-    }
+            while (!rawJson.empty() && std::isspace(rawJson.back())) {
+                rawJson.pop_back();
+            }
+            while (!rawJson.empty() && rawJson.back() != '}') {
+                rawJson.pop_back();
+            }
 
-    return parseJSONshit(rawJson);
+            return parseJSONshit(rawJson);
         }
     }
 
@@ -78,6 +78,12 @@ SwagSong Song::loadFromJson(const std::string& songName, const std::string& fold
                 Log::getInstance().info("Created chart reader for format: " + std::to_string(static_cast<int>(format)));
                 if (sourceChart->loadFromFile(chartPath)) {
                     Log::getInstance().info("Successfully loaded chart from: " + chartPath);
+                    
+                    if (format == Tsukiyo::Chart::Format::StepMania && !difficulty.empty()) {
+                        sourceChart->difficulty = Tsukiyo::Chart::Difficulty::Custom;
+                        sourceChart->customDifficulty = difficulty;
+                    }
+                    
                     auto moon4kChart = Tsukiyo::ChartConverter::convert(*sourceChart, Tsukiyo::Chart::Format::Moon4K);
                     if (moon4kChart) {
                         Log::getInstance().info("Successfully converted chart to Moon4K format");

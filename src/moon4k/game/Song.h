@@ -45,7 +45,7 @@ struct SwagSong {
 class Song {
 public:
     Song(const std::string& song, const std::vector<SwagSection>& notes, float bpm, int sections, int keyCount, const std::vector<int>& timescale);
-    static SwagSong loadFromJson(const std::string& songName, const std::string& folder = "");
+    static SwagSong loadFromJson(const std::string& songName, const std::string& folder = "", const std::string& difficulty = "");
     static SwagSong parseJSONshit(const std::string& rawJson);
 
 private:

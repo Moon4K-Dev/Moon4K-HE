@@ -35,7 +35,7 @@ struct NXBinding {
 
 class PlayState : public SwagState {
 public:
-    PlayState(const std::string& songName);
+    PlayState(const std::string& songName, const std::string& difficulty = "");
     ~PlayState();
 
     void create() override;
@@ -79,6 +79,7 @@ public:
 
 private:
     std::string directSongName;
+    std::string selectedDifficulty;
     int sections = 0;
     std::vector<SwagSection> sectionLengths;
     int keyCount = 4;
