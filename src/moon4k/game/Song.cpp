@@ -136,14 +136,13 @@ SwagSong Song::convertTsukiyoToSwagSong(const Tsukiyo::Chart& chart) {
 
 SwagSong Song::parseJSONshit(const std::string& rawJson) {
     SwagSong swagShit;
+    
     try {
-        json j = json::parse(rawJson);
-        
-        json songData = j;
-        if (j.contains("song") && j["song"].is_object()) {
-            songData = j["song"];
+        nlohmann::json songData = nlohmann::json::parse(rawJson);
+        if (songData.contains("song") && songData["song"].is_object()) {
+            songData = songData["song"];
         }
-
+        
         if (songData.contains("song")) {
             if (songData["song"].is_string()) {
                 swagShit.song = songData["song"].get<std::string>();
@@ -151,19 +150,11 @@ SwagSong Song::parseJSONshit(const std::string& rawJson) {
                 swagShit.song = songData["song"]["name"].get<std::string>();
             }
         }
-
+        
         swagShit.bpm = songData.value("bpm", 100.0f);
         swagShit.speed = songData.value("speed", 1.0f);
         swagShit.sections = songData.value("sections", 0);
         swagShit.keyCount = songData.value("keyCount", 4);
-        
-        if (songData.contains("timescale") && songData["timescale"].is_array()) {
-            for (const auto& value : songData["timescale"]) {
-                if (value.is_number()) {
-                    swagShit.timescale.push_back(value.get<int>());
-                }
-            }
-        }
         
         if (songData.contains("notes") && songData["notes"].is_array()) {
             for (const auto& noteJson : songData["notes"]) {
@@ -178,17 +169,33 @@ SwagSong Song::parseJSONshit(const std::string& rawJson) {
                     
                     if (noteJson.contains("sectionNotes") && noteJson["sectionNotes"].is_array()) {
                         for (const auto& noteData : noteJson["sectionNotes"]) {
-                            if (noteData.is_array() && noteData.size() >= 2) {
-                                std::vector<float> note;
+                            std::vector<float> note;
+                            
+                            if (noteData.is_object()) {
+                                float strumTime = noteData.value("noteStrum", 0.0f);
+                                float noteNum = static_cast<float>(noteData.value("noteData", 0));
+                                float susLength = noteData.value("noteSus", 0.0f);
+                                
+                                note.push_back(strumTime);
+                                note.push_back(noteNum);
+                                note.push_back(0.0f);
+                                
+                                if (susLength > 0) {
+                                    note.push_back(susLength);
+                                }
+                            }
+                            else if (noteData.is_array() && noteData.size() >= 2) {
                                 note.push_back(noteData[0].get<float>());
                                 note.push_back(noteData[1].get<float>());
                                 note.push_back(0.0f);
                                 
                                 if (noteData.size() >= 4) {
                                     note.push_back(noteData[3].get<float>());
-                                        }
-                                
-                                    section.sectionNotes.push_back(note);
+                                }
+                            }
+                            
+                            if (!note.empty()) {
+                                section.sectionNotes.push_back(note);
                             }
                         }
                     }
@@ -208,11 +215,11 @@ SwagSong Song::parseJSONshit(const std::string& rawJson) {
         Log::getInstance().info("Key Count: " + std::to_string(swagShit.keyCount));
         Log::getInstance().info("Sections: " + std::to_string(swagShit.sections));
         Log::getInstance().info("Notes count: " + std::to_string(swagShit.notes.size()));
-
-    } catch (const json::exception& ex) {
-        Log::getInstance().error("JSON parsing error: " + std::string(ex.what()));
-        return SwagSong();
+        
+        return swagShit;
+        
+    } catch (const std::exception& ex) {
+        Log::getInstance().error("Error parsing song JSON: " + std::string(ex.what()));
+        return swagShit;
     }
-
-    return swagShit;
 } 

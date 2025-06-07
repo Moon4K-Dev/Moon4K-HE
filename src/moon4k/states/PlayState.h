@@ -56,6 +56,7 @@ public:
     static PlayState* instance;
     static SwagSong SONG;
     static Sound* inst;
+    static Sound* voices;
     bool startingSong = false;
     bool startedCountdown = false;
 

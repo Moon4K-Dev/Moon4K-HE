@@ -14,10 +14,12 @@
 #endif
 #include "FreeplayState.h"
 #include "../substates/ResultsSubState.h"
+#include <filesystem>
 
 PlayState* PlayState::instance = nullptr;
 SwagSong PlayState::SONG;
 Sound* PlayState::inst = nullptr;
+Sound* PlayState::voices = nullptr;
 
 PlayState::PlayState(const std::string& songName)
     : SwagState()
@@ -48,6 +50,11 @@ PlayState::~PlayState() {
     if (inst != nullptr) {
         delete inst;
         inst = nullptr;
+    }
+    
+    if (voices != nullptr) {
+        delete voices;
+        voices = nullptr;
     }
 
     for (auto arrow : strumLineNotes) {
@@ -337,12 +344,31 @@ void PlayState::generateSong(std::string dataPath) {
             inst = nullptr;
         }
 
-        std::string instPath = "assets/charts/" + baseSongName + "/" + baseSongName + soundExt;
+        std::string instPath = "assets/charts/" + baseSongName + "/" + baseSongName + "_Inst" + soundExt;
+        std::string voicesPath = "assets/charts/" + baseSongName + "/" + baseSongName + "_Voices" + soundExt;
+        
+        if (!std::filesystem::exists(instPath)) {
+            instPath = "assets/charts/" + baseSongName + "/" + baseSongName + soundExt;
+        }
+
         inst = new Sound();
         if (!inst->load(instPath)) {
             Log::getInstance().error("Failed to load song audio: " + instPath);
             delete inst;
             inst = nullptr;
+        } else {
+            Log::getInstance().info("Loaded instrumental: " + instPath);
+            
+            if (std::filesystem::exists(voicesPath)) {
+                voices = new Sound();
+                if (!voices->load(voicesPath)) {
+                    Log::getInstance().error("Failed to load voices audio: " + voicesPath);
+                    delete voices;
+                    voices = nullptr;
+                } else {
+                    Log::getInstance().info("Loaded voices: " + voicesPath);
+                }
+            }
         }
 
         checkAndSetBackground();
@@ -359,6 +385,9 @@ void PlayState::startSong() {
     startingSong = false;
     if (inst != nullptr) {
         inst->play();
+        if (voices != nullptr) {
+            voices->play();
+        }
     }
 }
 
@@ -548,6 +577,12 @@ void PlayState::destroy() {
     combo = 0;
     totalPlayed = 0;
     totalNotesHit = 0;
+    
+    if (voices != nullptr) {
+        voices->stop();
+        delete voices;
+        voices = nullptr;
+    }
 }
 
 void PlayState::openSubState(SubState* subState) {
@@ -781,6 +816,11 @@ void PlayState::updateHealth(float deltaTime) {
             delete inst;
             inst = nullptr;
         }
+        if (voices) {
+            voices->stop();
+            delete voices;
+            voices = nullptr;
+        }
         SoundManager::getInstance().stopMusic();
         startTransitionOut(0.5f);
         Engine::getInstance()->switchState(new FreeplayState());
@@ -806,6 +846,11 @@ void PlayState::loseHealth() {
             delete inst;
             inst = nullptr;
         }
+        if (voices) {
+            voices->stop();
+            delete voices;
+            voices = nullptr;
+        }
         SoundManager::getInstance().stopMusic();
         startTransitionOut(0.5f);
         Engine::getInstance()->switchState(new FreeplayState());
@@ -815,6 +860,9 @@ void PlayState::loseHealth() {
 void PlayState::endSong() {
     if (inst) {
         inst->stop();
+    }
+    if (voices) {
+        voices->stop();
     }
     
     ResultsSubState* resultsSubState = new ResultsSubState();    
