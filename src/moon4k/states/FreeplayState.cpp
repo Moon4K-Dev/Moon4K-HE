@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include "../backend/json.hpp"
+#include "../game/ScoreManager.h"
 #include <cmath>
 
 using json = nlohmann::json;
@@ -39,7 +40,11 @@ FreeplayState::FreeplayState()
     , backgroundPattern(nullptr)
     , itemHeight(80.0f)
     , scrollOffset(0.0f)
-    , currentSound(nullptr) {
+    , currentSound(nullptr)
+    , scoreText(nullptr)
+    , accuracyText(nullptr)
+    , missesText(nullptr)
+    , rankText(nullptr) {
     instance = this;
     bgColor = {20, 20, 20, 255};
     dotColor = {100, 100, 150, 100};
@@ -90,6 +95,26 @@ void FreeplayState::create() {
     subtitleText->setText("Press R to rescan songs or Press Space to play a song's audio!");
     subtitleText->setPosition(20, 60);
     engine->addText(subtitleText);
+
+    scoreText = new Text();
+    scoreText->setFormat(Paths::font("vcr.ttf"), 24, 0xFFFFFFFF);
+    scoreText->setPosition(20, 100);
+    engine->addText(scoreText);
+
+    accuracyText = new Text();
+    accuracyText->setFormat(Paths::font("vcr.ttf"), 24, 0xFFFFFFFF);
+    accuracyText->setPosition(20, 130);
+    engine->addText(accuracyText);
+
+    missesText = new Text();
+    missesText->setFormat(Paths::font("vcr.ttf"), 24, 0xFFFFFFFF);
+    missesText->setPosition(20, 160);
+    engine->addText(missesText);
+
+    rankText = new Text();
+    rankText->setFormat(Paths::font("vcr.ttf"), 24, 0xFFFFFFFF);
+    rankText->setPosition(20, 190);
+    engine->addText(rankText);
     
     loadAudioFiles();
     
@@ -100,7 +125,7 @@ void FreeplayState::create() {
     for (const auto& audio : audioFiles) {
         Text* fileText = new Text();
         fileText->setFormat(Paths::font("vcr.ttf"), 20, 0xFFFFFFFF);
-        fileText->setText(audio.filename);
+        fileText->setText(audio.displayName);
         fileText->setPosition(sidebarX + 20, yPos);
         engine->addText(fileText);
         fileTexts.push_back(fileText);
@@ -279,6 +304,11 @@ void FreeplayState::render() {
     if (visualizer) {
         visualizer->render();
     }
+
+    if (scoreText) scoreText->render();
+    if (accuracyText) accuracyText->render();
+    if (missesText) missesText->render();
+    if (rankText) rankText->render();
     
     if (difficultyPanelOffset > -290.0f) {
         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -320,6 +350,11 @@ void FreeplayState::destroy() {
     }
     fileTexts.clear();
     descriptionTexts.clear();
+    
+    scoreText = nullptr;
+    accuracyText = nullptr;
+    missesText = nullptr;
+    rankText = nullptr;
 }
 
 void FreeplayState::loadAudioFiles() {
@@ -414,25 +449,27 @@ void FreeplayState::loadAudioFiles() {
                     }
                 }
 
-                audioFiles.push_back({
-                    displayName, 
-                    finalDescription, 
-                    0.0f, 
-                    0.0f,
-                    format,
-                    difficulties
-                });
+                AudioFile audioFile;
+                audioFile.filename = songName;
+                audioFile.displayName = displayName;
+                audioFile.description = finalDescription;
+                audioFile.tweenOffset = 0.0f;
+                audioFile.targetOffset = 0.0f;
+                audioFile.format = format;
+                audioFile.difficulties = difficulties;
+                audioFiles.push_back(audioFile);
                 
             } catch (const std::exception& e) {
                 Log::getInstance().error("Error parsing song JSON: " + std::string(e.what()));
-                audioFiles.push_back({
-                    songName, 
-                    "No song data available | Format: " + format, 
-                    0.0f, 
-                    0.0f,
-                    format,
-                    std::vector<std::string>()
-                });
+                AudioFile audioFile;
+                audioFile.filename = songName;
+                audioFile.displayName = songName;
+                audioFile.description = "No song data available | Format: " + format;
+                audioFile.tweenOffset = 0.0f;
+                audioFile.targetOffset = 0.0f;
+                audioFile.format = format;
+                audioFile.difficulties = std::vector<std::string>();
+                audioFiles.push_back(audioFile);
             }
         }
     }
@@ -478,7 +515,7 @@ void FreeplayState::updateSelection(int change) {
     selectedIndex += change;
     
     if (selectedIndex < 0) {
-        selectedIndex = audioFiles.size() - 1;
+        selectedIndex = static_cast<int>(audioFiles.size()) - 1;
     }
     if (selectedIndex >= static_cast<int>(audioFiles.size())) {
         selectedIndex = 0;
@@ -498,6 +535,29 @@ void FreeplayState::updateSelection(int change) {
     }
     if (selectedY + itemHeight > windowHeight - 50.0f) {
         scrollOffset += (selectedY + itemHeight) - (windowHeight - 50.0f);
+    }
+
+    if (!audioFiles.empty() && selectedIndex >= 0 && selectedIndex < static_cast<int>(audioFiles.size())) {
+        std::string songName = audioFiles[selectedIndex].filename;
+        std::string difficulty = audioFiles[selectedIndex].difficulties.empty() ? "" : audioFiles[selectedIndex].difficulties[selectedDifficulty];
+        
+        SongScore highScore = ScoreManager::getInstance()->getHighScore(songName, difficulty);
+        
+        if (highScore.songName.empty()) {
+            if (scoreText) scoreText->setText("No scores yet!");
+            if (accuracyText) accuracyText->setText("");
+            if (missesText) missesText->setText("");
+            if (rankText) rankText->setText("");
+        } else {
+            if (scoreText) scoreText->setText("High Score: " + std::to_string(highScore.score));
+            if (accuracyText) {
+                char accuracyStr[32];
+                snprintf(accuracyStr, sizeof(accuracyStr), "Accuracy: %.2f%%", highScore.accuracy);
+                accuracyText->setText(accuracyStr);
+            }
+            if (missesText) missesText->setText("Misses: " + std::to_string(highScore.misses));
+            if (rankText) rankText->setText("Rank: " + highScore.rank);
+        }
     }
 }
 
@@ -522,7 +582,7 @@ void FreeplayState::rescanSongs() {
     for (const auto& audio : audioFiles) {
         Text* fileText = new Text();
         fileText->setFormat(Paths::font("vcr.ttf"), 20, 0xFFFFFFFF);
-        fileText->setText(audio.filename);
+        fileText->setText(audio.displayName);
         fileText->setPosition(sidebarX + 20, yPos);
         engine->addText(fileText);
         fileTexts.push_back(fileText);
@@ -602,7 +662,30 @@ std::string FreeplayState::wrapText(const std::string& text, float maxWidth, int
     return result;
 }
 
-void FreeplayState::updateDifficultySelection() {}
+void FreeplayState::updateDifficultySelection() {
+    if (!audioFiles.empty() && selectedIndex >= 0 && selectedIndex < static_cast<int>(audioFiles.size())) {
+        std::string songName = audioFiles[selectedIndex].filename;
+        std::string difficulty = audioFiles[selectedIndex].difficulties[selectedDifficulty];
+        
+        SongScore highScore = ScoreManager::getInstance()->getHighScore(songName, difficulty);
+        
+        if (highScore.songName.empty()) {
+            if (scoreText) scoreText->setText("No scores yet!");
+            if (accuracyText) accuracyText->setText("");
+            if (missesText) missesText->setText("");
+            if (rankText) rankText->setText("");
+        } else {
+            if (scoreText) scoreText->setText("High Score: " + std::to_string(highScore.score));
+            if (accuracyText) {
+                char accuracyStr[32];
+                snprintf(accuracyStr, sizeof(accuracyStr), "Accuracy: %.2f%%", highScore.accuracy);
+                accuracyText->setText(accuracyStr);
+            }
+            if (missesText) missesText->setText("Misses: " + std::to_string(highScore.misses));
+            if (rankText) rankText->setText("Rank: " + highScore.rank);
+        }
+    }
+}
 
 std::string FreeplayState::trim(const std::string& str) {
     size_t first = str.find_first_not_of(" \t\n\r");

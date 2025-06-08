@@ -129,9 +129,6 @@
     <ClCompile Include="..\..\src\moon4k\states\TitleState.cpp">
       <Filter>Source Files\moon4k\states</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\moon4k\states\FreeplayStateLegacy.cpp">
-      <Filter>Source Files\moon4k\states</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\moon4k\states\MainMenuState.cpp">
       <Filter>Source Files\moon4k\states</Filter>
     </ClCompile>
@@ -164,6 +161,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\moon4k\states\ControlsOptionsState.cpp">
       <Filter>Source Files\moon4k\states\options</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\game\ScoreManager.cpp">
+      <Filter>Source Files\moon4k\game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

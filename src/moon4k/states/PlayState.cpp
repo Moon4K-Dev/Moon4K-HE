@@ -15,6 +15,7 @@
 #include "FreeplayState.h"
 #include "../substates/ResultsSubState.h"
 #include <filesystem>
+#include "../game/ScoreManager.h"
 
 PlayState* PlayState::instance = nullptr;
 SwagSong PlayState::SONG;
@@ -910,6 +911,16 @@ void PlayState::endSong() {
     if (voices) {
         voices->stop();
     }
+    
+    ScoreManager::getInstance()->saveScore(
+        directSongName,
+        selectedDifficulty,
+        score,
+        misses,
+        accuracy,
+        totalNotesHit,
+        curRank
+    );
     
     ResultsSubState* resultsSubState = new ResultsSubState();    
     resultsSubState->setStats(score, misses, accuracy, totalNotesHit, curRank);    

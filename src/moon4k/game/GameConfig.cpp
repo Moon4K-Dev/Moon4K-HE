@@ -1,6 +1,7 @@
 #include "GameConfig.h"
 #include "../../engine/utils/Log.h"
 #include <fstream>
+#include <filesystem>
 
 GameConfig* GameConfig::instance = nullptr;
 
@@ -18,7 +19,46 @@ GameConfig* GameConfig::getInstance() {
 void GameConfig::loadConfig() {
     std::ifstream file("assets/config.json");
     if (!file.is_open()) {
-        Log::getInstance().error("Could not open config.json");
+        config = {
+            {"mainBinds", {
+                {"left", "A"},
+                {"down", "S"},
+                {"up", "K"},
+                {"right", "L"}
+            }},
+            {"altBinds", {
+                {"left", "ArrowLeft"},
+                {"down", "ArrowDown"},
+                {"up", "ArrowUp"},
+                {"right", "ArrowRight"}
+            }},
+            {"nxBinds", {
+                {"left", "X"},
+                {"down", "A"},
+                {"up", "Y"},
+                {"right", "B"}
+            }},
+            {"nxAltBinds", {
+                {"left", "DPAD_LEFT"},
+                {"down", "DPAD_DOWN"},
+                {"up", "DPAD_UP"},
+                {"right", "DPAD_RIGHT"}
+            }},
+            {"gameConfig", {
+                {"downscroll", false},
+                {"ghostTapping", true},
+                {"noteskin", "default"},
+                {"scrollSpeed", 1.0},
+                {"songOffset", 0.0}
+            }}
+        };
+        saveConfig();        
+        downscroll = false;
+        ghostTapping = true;
+        noteskin = "default";
+        scrollSpeed = 1.0f;
+        songOffset = 0.0f;
+        Log::getInstance().info("Created default config.json");
         return;
     }
 

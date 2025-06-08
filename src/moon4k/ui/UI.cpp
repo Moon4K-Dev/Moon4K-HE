@@ -78,6 +78,7 @@ void UI::init() {
     songTimerTxt->setPosition(screenWidth - 310, timerY);
 
     laneUnderlay->setPosition(screenWidth / 2 - 200, 0);
+    laneUnderlay->setAlpha(0.65f);
 }
 
 void UI::update(float deltaTime) {

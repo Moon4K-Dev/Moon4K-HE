@@ -7,6 +7,7 @@
 #include "../../engine/input/Input.h"
 #include "../../engine/audio/SoundManager.h"
 #include "../../engine/utils/Paths.h"
+#include "../game/ScoreManager.h"
 #include "../../../external/sdl2.vis/embedded_visualizer.hpp"
 #include <vector>
 #include <string>
@@ -16,6 +17,7 @@ void SDLCALL postmix_callback(void* udata, Uint8* stream, int len);
 
 struct AudioFile {
     std::string filename;
+    std::string displayName;
     std::string description;
     float tweenOffset;
     float targetOffset;
@@ -58,6 +60,10 @@ private:
     
     Text* titleText;
     Text* subtitleText;
+    Text* scoreText;
+    Text* accuracyText;
+    Text* missesText;
+    Text* rankText;
     Sprite* backgroundPattern;
     
     float itemHeight;
