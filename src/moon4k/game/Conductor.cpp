@@ -10,7 +10,7 @@ float Conductor::lastSongPos = 0;
 float Conductor::offset = 0;
 float Conductor::safeZoneOffset = 0;
 
-int Conductor::safeFrames = 15;
+int Conductor::safeFrames = 10;
 
 std::vector<BPMChangeEvent> Conductor::bpmChangeMap;
 
