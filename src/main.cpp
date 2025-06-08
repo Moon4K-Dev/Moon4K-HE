@@ -12,6 +12,7 @@
 #include "engine/input/Input.h"
 #include "moon4k/states/SplashState.h"
 #include "engine/utils/Discord.h"
+#include <steam/steam_api.h>
 #endif
 
 int main(int argc, char** argv) {
@@ -28,6 +29,16 @@ int main(int argc, char** argv) {
     Discord::GetInstance().SetSmallImage("");
     Discord::GetInstance().SetSmallImageText("");    
     Discord::GetInstance().Update();
+
+    if (!SteamAPI_Init()) {
+        std::cerr << "Failed to initialize Steamworks!" << std::endl;
+        return 1;
+    }
+
+    std::cout << "Steamworks initialized!" << std::endl;
+
+    const char* username = SteamFriends()->GetPersonaName();
+    std::cout << "Logged in as: " << username << std::endl;
     #endif
     
     int width = 1280;
@@ -52,6 +63,7 @@ int main(int argc, char** argv) {
     }
     #else
     engine.run();
+    SteamAPI_RunCallbacks();
     #endif
     
     #ifdef __MINGW32__
@@ -60,6 +72,7 @@ int main(int argc, char** argv) {
     // nun
     #else
     Discord::GetInstance().Shutdown();
+    SteamAPI_Shutdown();
     #endif
     return 0;
 }

@@ -51,6 +51,7 @@
     <ClCompile Include="..\..\src\moon4k\states\OnlineDLState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\OptionsState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\PlayState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\ProfileSubState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\SkinOptionsState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\SplashState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\TitleState.cpp" />
@@ -152,16 +153,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CTR_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CTR_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\external\Tsukiyo\include;$(ProjectDir)..\..\external;$(ProjectDir)..\..\external\ffmpeg\include;$(ProjectDir)..\..\external\discord-rpc\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\external\Tsukiyo\include;$(ProjectDir)..\..\external\public;$(ProjectDir)..\..\external;$(ProjectDir)..\..\external\ffmpeg\include;$(ProjectDir)..\..\external\discord-rpc\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\external\ffmpeg\lib;$(ProjectDir)..\..\external\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);discord-rpc.lib;libcurl.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2main.lib;SDL2test.lib;avcodec.lib;SDL2_gfx.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);steam_api64.lib;discord-rpc.lib;libcurl.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2main.lib;SDL2test.lib;avcodec.lib;SDL2_gfx.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)..\..\assets" "$(TargetDir)\assets\" /E /Y
@@ -182,16 +183,16 @@ xcopy /Y "$(ProjectDir)..\..\external\dll\*.dll" "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CTR_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CTR_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\external\Tsukiyo\include;$(ProjectDir)..\..\external;$(ProjectDir)..\..\external\ffmpeg\include;$(ProjectDir)..\..\external\discord-rpc\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\external\Tsukiyo\include;$(ProjectDir)..\..\external\public;$(ProjectDir)..\..\external;$(ProjectDir)..\..\external\ffmpeg\include;$(ProjectDir)..\..\external\discord-rpc\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\external\ffmpeg\lib;$(ProjectDir)..\..\external\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);discord-rpc.lib;libcurl.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2main.lib;SDL2test.lib;avcodec.lib;SDL2_gfx.lib;</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);steam_api64.lib;discord-rpc.lib;libcurl.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2main.lib;SDL2test.lib;avcodec.lib;SDL2_gfx.lib;</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)..\..\assets" "$(TargetDir)\assets\" /E /Y</Command>

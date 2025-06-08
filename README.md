@@ -1,4 +1,6 @@
-# Moon4K - Hamburger Engine Port
+# Moon4K - Hamburger Engine Port - Steamworks Testing Branch
+
+* MADE PURELY FOR TESTING PURPOSES, yew need to get da steamworks sdk yourself btw
 
 * 4-key rhythm game originally made by basically three people
 

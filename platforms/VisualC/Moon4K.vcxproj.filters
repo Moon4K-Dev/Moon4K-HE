@@ -165,6 +165,9 @@
     <ClCompile Include="..\..\src\moon4k\game\ScoreManager.cpp">
       <Filter>Source Files\moon4k\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\ProfileSubState.cpp">
+      <Filter>Source Files\moon4k\states</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

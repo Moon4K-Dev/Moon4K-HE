@@ -5,6 +5,7 @@
 #include "../../engine/graphics/Text.h"
 #include <vector>
 #include <string>
+#include <steam/steam_api.h>
 
 class MainMenuState : public SwagState {
 public:
@@ -20,6 +21,9 @@ private:
     void changeSelection(int change = 0);
 
     Sprite* titleSprite;
+    Sprite* avatarSprite;
+    Sprite* avatarBorderSprite;
+    Text* userNameText;
     std::vector<Text*> menuItems;
     std::vector<std::string> menuTexts;
     int currentSelection;

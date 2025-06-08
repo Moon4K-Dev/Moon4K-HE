@@ -6,6 +6,7 @@
 #include "FreeplayState.h"
 #include "OnlineDLState.h"
 #include "OptionsState.h"
+#include "ProfileSubState.h"
 
 MainMenuState::MainMenuState() 
     : titleSprite(nullptr)
@@ -51,6 +52,76 @@ void MainMenuState::create() {
     snprintf(buffer, sizeof(buffer), "In the Main Menu!");
     Discord::GetInstance().SetDetails(buffer);
     Discord::GetInstance().Update();
+
+    if (SteamAPI_IsSteamRunning() && SteamUser() && SteamFriends()) {
+        const char* userName = SteamFriends()->GetPersonaName();
+
+        userNameText = new Text();
+        userNameText->setFormat(Paths::font("vcr.ttf"), 24, 0xFFFFFFFF);
+        std::string displayName = "Logged in as ";
+        displayName += userName;
+        userNameText->setText(displayName);
+
+        CSteamID steamID = SteamUser()->GetSteamID();
+        int avatarInt = SteamFriends()->GetMediumFriendAvatar(steamID);
+        if (avatarInt != 0) {
+            uint32 width, height;
+            if (SteamUtils()->GetImageSize(avatarInt, &width, &height)) {
+                uint8* avatarRGBA = new uint8[4 * width * height];
+                if (SteamUtils()->GetImageRGBA(avatarInt, avatarRGBA, 4 * width * height)) {
+                    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(
+                        avatarRGBA, width, height, 32, 4 * width,
+                        0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000
+                    );
+
+                    if (surface) {
+                        SDL_Texture* avatarTexture = SDL_CreateTextureFromSurface(SDLManager::getInstance().getRenderer(), surface);
+                        SDL_FreeSurface(surface);
+                        delete[] avatarRGBA;
+
+                        if (avatarTexture) {
+                            avatarBorderSprite = new Sprite();
+                            SDL_Renderer* renderer = SDLManager::getInstance().getRenderer();
+                            SDL_Surface* borderSurface = SDL_CreateRGBSurface(0, width + 6, height + 6, 32, 0, 0, 0, 0);
+                            SDL_FillRect(borderSurface, nullptr, SDL_MapRGB(borderSurface->format, 255, 0, 255));
+                            SDL_Texture* borderTexture = SDL_CreateTextureFromSurface(renderer, borderSurface);
+                            SDL_FreeSurface(borderSurface);
+                            avatarBorderSprite->setTexture(borderTexture);
+                            avatarBorderSprite->setScale(1.0f, 1.0f);
+                            
+                            avatarSprite = new Sprite();
+                            avatarSprite->setTexture(avatarTexture);
+                            avatarSprite->setScale(1.0f, 1.0f);
+                            
+                            int padding = 20;
+                            int borderPadding = 3;
+                            
+                            avatarBorderSprite->setPosition(
+                                padding, 
+                                engine->getWindowHeight() - padding - height - borderPadding * 2
+                            );
+                            
+                            avatarSprite->setPosition(
+                                padding + borderPadding,
+                                engine->getWindowHeight() - padding - height - borderPadding
+                            );
+                            
+                            userNameText->setPosition(
+                                padding + width + borderPadding * 2 + 10,
+                                engine->getWindowHeight() - padding - userNameText->getHeight()
+                            );
+                            
+                            engine->addSprite(avatarBorderSprite);
+                            engine->addSprite(avatarSprite);
+                            engine->addText(userNameText);
+                        }
+                    }
+                } else {
+                    delete[] avatarRGBA;
+                }
+            }
+        }
+    }
 }
 
 void MainMenuState::update(float deltaTime) {
@@ -59,6 +130,27 @@ void MainMenuState::update(float deltaTime) {
     if (!isTransitioning()) {
         Input::UpdateKeyStates();
         Input::UpdateControllerStates();
+
+        if (avatarSprite) {
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+            
+            SDL_Rect avatarRect = {
+                static_cast<int>(avatarSprite->getX()),
+                static_cast<int>(avatarSprite->getY()),
+                static_cast<int>(avatarSprite->getWidth()),
+                static_cast<int>(avatarSprite->getHeight())
+            };
+            
+            bool isAvatarHovered = (mouseX >= avatarRect.x && mouseX < avatarRect.x + avatarRect.w &&
+                                  mouseY >= avatarRect.y && mouseY < avatarRect.y + avatarRect.h);
+            
+            if (isAvatarHovered && Input::justPressed(SDL_SCANCODE_RETURN)) {
+                Log::getInstance().info("Opening Profile SubState");
+                openSubState(new ProfileSubState());
+                return;
+            }
+        }
 
         if (Input::justPressed(SDL_SCANCODE_UP)) {
             changeSelection(-1);
@@ -102,11 +194,24 @@ void MainMenuState::render() {
         }
     }
 
+    if (userNameText) {
+        userNameText->render();
+    }
+    if (avatarBorderSprite) {
+        avatarBorderSprite->render();
+    }
+    if (avatarSprite) {
+        avatarSprite->render();
+    }
+
     SwagState::render();
 }
 
 void MainMenuState::destroy() {
     titleSprite = nullptr;
+    avatarSprite = nullptr;
+    avatarBorderSprite = nullptr;
+    userNameText = nullptr;
     menuItems.clear();
 
     SwagState::destroy();

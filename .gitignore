@@ -63,3 +63,6 @@ platforms/VisualC/Moon4K/x64/Debug/Moon4K.vcxproj.FileListAbsolute.txt
 /Moon4K-main
 /IGNORE_ME
 /platforms/VisualC/assets
+/external/public
+external/dll/steam_api64.dll
+external/lib/x64/steam_api64.lib
