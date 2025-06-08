@@ -199,10 +199,12 @@ void PlayState::update(float deltaTime) {
             auto strum = strumLineNotes[note->direction % keyCount];
             if (!strum) continue;
 
+            float yOffset = note->isSustainNote ? -14.09f : 0.0f;
+
             if (GameConfig::getInstance()->getDownscroll()) {
-                note->setY(strum->getY() + (0.45f * (Conductor::songPosition - note->strumTime) * GameConfig::getInstance()->getScrollSpeed()));
+                note->setY(strum->getY() + yOffset + (0.45f * (Conductor::songPosition - note->strumTime) * GameConfig::getInstance()->getScrollSpeed()));
             } else {
-                note->setY(strum->getY() - (0.45f * (Conductor::songPosition - note->strumTime) * GameConfig::getInstance()->getScrollSpeed()));
+                note->setY(strum->getY() + yOffset - (0.45f * (Conductor::songPosition - note->strumTime) * GameConfig::getInstance()->getScrollSpeed()));
             }
 
             note->update(deltaTime);
@@ -293,6 +295,26 @@ void PlayState::handleInput() {
                     if (note && note->shouldHit && note->isSustainNote && !note->wasGoodHit && 
                         note->direction == static_cast<int>(i) && note->canBeHit) {
                         goodNoteHit(note);
+                        
+                        if (note->isSustainNote) {
+                            auto strum = strumLineNotes[i];
+                            if (strum) {
+                                float strumY = strum->getY();
+                                float noteY = note->getY();
+                                float originalHeight = note->getHeight();
+                                
+                                if (GameConfig::getInstance()->getDownscroll()) {
+                                    float distance = std::abs(noteY - strumY);
+                                    float scale = distance / originalHeight;
+                                    note->setScale(0.5f, scale);
+                                } else {
+                                    float distance = std::abs(strumY - noteY);
+                                    float scale = distance / originalHeight;
+                                    note->setScale(0.5f, scale);
+                                    note->setY(strumY + distance);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -511,25 +533,33 @@ void PlayState::generateNotes() {
                 totalNotes++;
 
                 float susLength = sustainLength / Conductor::stepCrochet;
-                for (int susNote = 0; susNote < static_cast<int>(susLength); susNote++) {
-                    oldNote = spawnNotes.back();
+                
+                if (susLength > 0) {
+                    for (int susNote = 0; susNote < static_cast<int>(susLength); susNote++) {
+                        oldNote = spawnNotes.back();
 
-                    Note* sustainNote = new Note(strum->getX(), strum->getY(), daNoteData, 
-                                               daStrumTime + (Conductor::stepCrochet * susNote) + Conductor::stepCrochet,
-                                               GameConfig::getInstance()->getNoteskin(), true, keyCount);
-                    sustainNote->lastNote = oldNote;
-                    sustainNote->isSustainNote = true;
+                        Note* sustainNote = new Note(strum->getX() - -30.0f, strum->getY() - 10.0f, daNoteData, 
+                                                   daStrumTime + (Conductor::stepCrochet * susNote) + (Conductor::stepCrochet / 2),
+                                                   GameConfig::getInstance()->getNoteskin(), true, keyCount);
+                        sustainNote->lastNote = oldNote;
+                        sustainNote->isSustainNote = true;
+                        sustainNote->setScale(0.5f, 1.0f);
 
-                    if (susNote == static_cast<int>(susLength) - 1) {
-                        sustainNote->isEndNote = true;
-                        sustainNote->playAnim("holdend");
-                    } else {
-                        sustainNote->playAnim("hold");
+                        if (susNote == static_cast<int>(susLength) - 1) {
+                            sustainNote->isEndNote = true;
+                            sustainNote->playAnim("holdend");
+                            sustainNote->setScale(0.5f, 0.7f);
+                        } else {
+                            sustainNote->playAnim("hold");
+                            sustainNote->scale.y *= 305.0f * SONG.speed; // why the fuck does it have to be this for it to connect.
+                            sustainNote->updateHitbox();
+                            sustainNote->offset.y = -100.0f;
+                        }
+
+                        oldNote->nextNote = sustainNote;
+                        spawnNotes.push_back(sustainNote);
+                        totalNotes++;
                     }
-
-                    oldNote->nextNote = sustainNote;
-                    spawnNotes.push_back(sustainNote);
-                    totalNotes++;
                 }
             }
         }
@@ -605,7 +635,6 @@ void PlayState::goodNoteHit(Note* note) {
                 float currentY = strumLineNotes[arrowIndex]->getY();
                 
                 strumLineNotes[arrowIndex]->playAnimation("confirm");
-                
                 strumLineNotes[arrowIndex]->setPosition(currentX, currentY);
             }
         }
@@ -616,12 +645,25 @@ void PlayState::goodNoteHit(Note* note) {
             totalNotesHit++;
             updateAccuracy();
             gainHealth();
+        } else {
+            gainHealth();
+            
+            if (note->nextNote && note->nextNote->isSustainNote) {
+                float strumY = strumLineNotes[note->direction]->getY();
+                
+                if (GameConfig::getInstance()->getDownscroll()) {
+                    float noteY = note->getY();
+                    float distance = std::abs(noteY - strumY);
+                    note->setY(strumY - distance);
+                } else {
+                    note->setY(strumY);
+                }
+            }
         }
         
         if (!note->isSustainNote) {
             note->kill = true;
-        }
-        else if (note->isEndNote) {
+        } else if (note->isEndNote) {
             note->kill = true;
         }
     }

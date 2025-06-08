@@ -60,6 +60,10 @@ public:
     bool isEndNote = false;
     Note* nextNote = nullptr;
     bool kill = false;
+    struct {
+        float x = 0.0f;
+        float y = 0.0f;
+    } offset;
 
 private:
     nlohmann::json loadConfig(const std::string& configPath);
