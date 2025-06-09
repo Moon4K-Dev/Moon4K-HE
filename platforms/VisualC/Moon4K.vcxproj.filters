@@ -40,6 +40,9 @@
     <Filter Include="Source Files\moon4k\states\options">
       <UniqueIdentifier>{098d9a52-033d-4490-8f5f-ee66e6e101fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\moon4k\network">
+      <UniqueIdentifier>{b86740cd-90ca-4c43-acf4-dcb774a7f13e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp">
@@ -164,6 +167,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\moon4k\game\ScoreManager.cpp">
       <Filter>Source Files\moon4k\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\states\LoginState.cpp">
+      <Filter>Source Files\moon4k\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\network\NetworkManager.cpp">
+      <Filter>Source Files\moon4k\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\moon4k\network\UserSession.cpp">
+      <Filter>Source Files\moon4k\network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

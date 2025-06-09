@@ -1,4 +1,6 @@
-# Moon4K - Hamburger Engine Port
+# Moon4K - Hamburger Engine Port - Custom Server Branch
+
+* Testing a hypothetical custom server for Moon4K (mainly for acc and profile shit, I am NOT planning on doing multiplayer as of right now!)
 
 * 4-key rhythm game originally made by basically three people
 

@@ -20,6 +20,7 @@ private:
     void changeSelection(int change = 0);
 
     Sprite* titleSprite;
+    Text* usernameText;
     std::vector<Text*> menuItems;
     std::vector<std::string> menuTexts;
     int currentSelection;

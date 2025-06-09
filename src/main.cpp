@@ -12,6 +12,8 @@
 #include "engine/input/Input.h"
 #include "moon4k/states/SplashState.h"
 #include "engine/utils/Discord.h"
+#include "moon4k/network/NetworkManager.h"
+#include "moon4k/network/UserSession.h"
 #endif
 
 int main(int argc, char** argv) {
@@ -28,6 +30,13 @@ int main(int argc, char** argv) {
     Discord::GetInstance().SetSmallImage("");
     Discord::GetInstance().SetSmallImageText("");    
     Discord::GetInstance().Update();
+
+    UserSession::Initialize();
+
+    if (!NetworkManager::GetInstance().Initialize()) {
+        Log::getInstance().error("Failed to connect to server: " + NetworkManager::GetInstance().GetLastError());
+        Log::getInstance().error("Game will start in offline mode");
+    }
     #endif
     
     int width = 1280;
@@ -59,6 +68,7 @@ int main(int argc, char** argv) {
     #elif defined(__SWITCH__)
     // nun
     #else
+    NetworkManager::GetInstance().Shutdown();
     Discord::GetInstance().Shutdown();
     #endif
     return 0;

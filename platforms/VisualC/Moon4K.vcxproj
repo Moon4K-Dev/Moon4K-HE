@@ -44,9 +44,12 @@
     <ClCompile Include="..\..\src\moon4k\game\ScoreManager.cpp" />
     <ClCompile Include="..\..\src\moon4k\game\Section.cpp" />
     <ClCompile Include="..\..\src\moon4k\game\Song.cpp" />
+    <ClCompile Include="..\..\src\moon4k\network\NetworkManager.cpp" />
+    <ClCompile Include="..\..\src\moon4k\network\UserSession.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\ControlsOptionsState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\FreeplayState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\GameplayOptionsState.cpp" />
+    <ClCompile Include="..\..\src\moon4k\states\LoginState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\MainMenuState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\OnlineDLState.cpp" />
     <ClCompile Include="..\..\src\moon4k\states\OptionsState.cpp" />
