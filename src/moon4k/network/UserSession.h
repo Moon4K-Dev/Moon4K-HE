@@ -13,6 +13,10 @@ public:
 private:
     static void SaveSession();
     static void LoadSession();
+    static void SaveAuthFile();
+    static void LoadAuthFile();
+    static std::string GetWindowsUsername();
+    static std::string GetAuthFilePath();
     static std::string currentUsername;
     static const char* SESSION_FILE;
 }; 
