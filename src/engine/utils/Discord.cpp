@@ -1,9 +1,10 @@
-#if !defined(__MINGW32__) && !defined(__SWITCH__)
+#if !defined(__MINGW32__) && !defined(__SWITCH__) && defined(_WIN32)
 
 #include "Discord.h"
 #include <time.h>
 #include <chrono>
 #include <iostream> 
+#include <cstring>
 
 static int64_t eptime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
@@ -62,4 +63,4 @@ void Discord::Update()
 	Discord_RunCallbacks();
 }
 
-#endif // __MINGW32__
+#endif

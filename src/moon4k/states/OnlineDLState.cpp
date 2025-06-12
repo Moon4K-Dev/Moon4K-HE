@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <sstream>
 #include <filesystem>
-#include <miniz/miniz.h>
 
 using json = nlohmann::json;
 
@@ -404,8 +403,13 @@ void OnlineDLState::downloadBeatmap(size_t beatmapIndex) {
     }
 
     FILE* fp = nullptr;
+#ifdef _WIN32
     errno_t err = fopen_s(&fp, tempPath.c_str(), "wb");
     if (err != 0 || !fp) {
+#else
+    fp = fopen(tempPath.c_str(), "wb");
+    if (!fp) {
+#endif
         curl_easy_cleanup(dlCurl);
         showErrorMessage("Failed to create temporary file");
         return;
