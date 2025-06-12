@@ -1,4 +1,4 @@
-#ifdef __MINGW32__ || defined(__SWITCH__)
+#if defined(__MINGW32__) || defined(__SWITCH__)
 #include "Paths.h"
 #include "../core/SDLManager.h"
 #include "../audio/SoundManager.h"

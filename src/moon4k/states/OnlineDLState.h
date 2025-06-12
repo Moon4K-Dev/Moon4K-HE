@@ -11,7 +11,11 @@
 #include <vector>
 #include <string>
 #include <curl/curl.h>
+#if !_WIN32
+#include <miniz.h>
+#else
 #include <miniz/miniz.h>
+#endif
 #include <queue>
 #include <mutex>
 #include <thread>

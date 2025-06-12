@@ -1,4 +1,4 @@
-#ifdef __MINGW32__ || defined(__SWITCH__)
+#if defined(__MINGW32__) || defined(__SWITCH__)
 #include "moon4k/substates/PauseSubState.h"
 #include "engine/core/Engine.h"
 #include "engine/input/Input.h"
