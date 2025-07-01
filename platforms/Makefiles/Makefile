@@ -28,7 +28,8 @@ LIBS = -L$(EXTERNALDIR)/SDL2/lib -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lS
        -L$(EXTERNALDIR)/al/lib -lopenal \
        -L$(EXTERNALDIR)/ogg/lib -logg \
        -L$(EXTERNALDIR)/vorbis/lib -lvorbis -lvorbisfile \
-       -lpthread -ldl -lm -lminiz
+       -lpthread -ldl -lm -lminiz \
+       -L$(EXTERNALDIR)/lib/Linux64 -ldiscord-rpc
 
 TARGET = $(BINDIR)/moon4k
 

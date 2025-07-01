@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 4.0)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 option(ENABLE_IO_THREAD "Start up a separate I/O thread, otherwise I'd need to call an update function" ON)

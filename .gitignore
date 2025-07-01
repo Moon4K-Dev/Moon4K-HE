@@ -63,3 +63,5 @@ platforms/VisualC/Moon4K/x64/Debug/Moon4K.vcxproj.FileListAbsolute.txt
 /Moon4K-main
 /IGNORE_ME
 /platforms/VisualC/assets
+/external/discord-rpc/src/build
+/external/discord-rpc/src/include
