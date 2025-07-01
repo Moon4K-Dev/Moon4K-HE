@@ -19,7 +19,8 @@ INCLUDES = -I$(SRCDIR) \
            -I$(EXTERNALDIR)/ogg/include \
            -I$(EXTERNALDIR)/vorbis/include \
            -I$(EXTERNALDIR)/Tsukiyo/include \
-           -I$(EXTERNALDIR)/sdl2.vis
+           -I$(EXTERNALDIR)/sdl2.vis \
+           -I/usr/include/miniz
 
 LIBS = -L$(EXTERNALDIR)/SDL2/lib -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2_gfx \
        -L$(EXTERNALDIR)/ffmpeg/lib -lavcodec -lavdevice -lavfilter -lavformat -lavutil -lpostproc -lswresample -lswscale \
