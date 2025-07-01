@@ -84,6 +84,18 @@ SwagSong Song::loadFromJson(const std::string& songName, const std::string& fold
                         sourceChart->customDifficulty = difficulty;
                     }
                     
+                    if (format == Tsukiyo::Chart::Format::FNFLegacy) {
+                        auto& sections = sourceChart->sections;
+                        sections.erase(
+                            std::remove_if(sections.begin(), sections.end(),
+                                [](const Tsukiyo::Section& section) { 
+                                    return !section.mustHitSection; 
+                                }
+                            ),
+                            sections.end()
+                        );
+                    }
+                    
                     auto moon4kChart = Tsukiyo::ChartConverter::convert(*sourceChart, Tsukiyo::Chart::Format::Moon4K);
                     if (moon4kChart) {
                         Log::getInstance().info("Successfully converted chart to Moon4K format");
