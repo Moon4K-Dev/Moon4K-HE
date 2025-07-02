@@ -20,6 +20,7 @@ INCLUDES = -I$(SRCDIR) \
            -I$(EXTERNALDIR)/Tsukiyo/include \
            -I$(EXTERNALDIR)/sdl2.vis \
            -I/usr/include/miniz
+           -I$(EXTERNALDIR)/vlc/include
 
 LIBS = -L$(EXTERNALDIR)/SDL2/lib -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2_gfx \
        -L$(EXTERNALDIR)/curl/lib -lcurl \
@@ -27,7 +28,8 @@ LIBS = -L$(EXTERNALDIR)/SDL2/lib -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lS
        -L$(EXTERNALDIR)/ogg/lib -logg \
        -L$(EXTERNALDIR)/vorbis/lib -lvorbis -lvorbisfile \
        -lpthread -ldl -lm -lminiz \
-       -L$(EXTERNALDIR)/lib/Linux64 -ldiscord-rpc
+       -L$(EXTERNALDIR)/lib/Linux64 -ldiscord-rpc \
+       -L$(EXTERNALDIR)/vlc/lib -lvlc
 
 TARGET = $(BINDIR)/moon4k
 
