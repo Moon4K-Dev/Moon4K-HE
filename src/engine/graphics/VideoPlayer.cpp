@@ -252,7 +252,7 @@ bool VideoPlayer::isPlaying() const {
 void VideoPlayer::update() {}
 
 void VideoPlayer::render(SDL_Renderer* renderer) {
-    if (!videoTexture || !playing) return;
+    if (!videoTexture) return;
 
     SDL_LockMutex(mutex);
     SDL_UpdateTexture(videoTexture, nullptr, videoPixels, videoWidth * 4);

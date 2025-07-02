@@ -39,3 +39,5 @@
 - Results Screen!
 
 - Removed Psych Engine noteskins
+
+- Added back Video BG support for songs! (libVLC how I love you)
