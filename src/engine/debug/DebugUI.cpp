@@ -56,6 +56,8 @@ void DebugUI::updateMemoryStats() {
     updateMemoryStatsWindows();
 #elif defined(__SWITCH__)
     updateMemoryStatsSwitch();
+#elif defined(__linux__)
+    updateMemoryStatsLinux();
 #endif
 }
 
@@ -93,6 +95,36 @@ void DebugUI::updateMemoryStatsSwitch() {
     std::stringstream memSS;
     memSS << "Memory: " << std::fixed << std::setprecision(1) 
           << (totalMemory / (1024.0f * 1024.0f)) << " MB";
+    memoryText->setText(memSS.str());
+}
+#endif
+
+#ifdef __linux__
+void DebugUI::updateMemoryStatsLinux() {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    long vmSize = 0;
+    long vmRSS = 0;
+
+    while (std::getline(status, line)) {
+        if (line.compare(0, 7, "VmSize:") == 0) {
+            std::stringstream ss(line.substr(7));
+            ss >> vmSize;
+        }
+        else if (line.compare(0, 6, "VmRSS:") == 0) {
+            std::stringstream ss(line.substr(6));
+            ss >> vmRSS;
+        }
+    }
+
+    std::stringstream ramSS;
+    ramSS << "RAM: " << std::fixed << std::setprecision(1) 
+          << (vmRSS / 1024.0f) << " MB";
+    ramText->setText(ramSS.str());
+
+    std::stringstream memSS;
+    memSS << "Memory: " << std::fixed << std::setprecision(1) 
+          << (vmSize / 1024.0f) << " MB";
     memoryText->setText(memSS.str());
 }
 #endif 
