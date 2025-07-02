@@ -12,7 +12,6 @@ OBJECTS += $(BUILDDIR)/external/sdl2.vis/embedded_visualizer.o
 
 INCLUDES = -I$(SRCDIR) \
            -I$(EXTERNALDIR)/SDL2 \
-           -I$(EXTERNALDIR)/ffmpeg/include \
            -I$(EXTERNALDIR)/discord-rpc/include \
            -I$(EXTERNALDIR)/curl/include \
            -I$(EXTERNALDIR)/al/include \
@@ -23,7 +22,6 @@ INCLUDES = -I$(SRCDIR) \
            -I/usr/include/miniz
 
 LIBS = -L$(EXTERNALDIR)/SDL2/lib -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2_gfx \
-       -L$(EXTERNALDIR)/ffmpeg/lib -lavcodec -lavdevice -lavfilter -lavformat -lavutil -lpostproc -lswresample -lswscale \
        -L$(EXTERNALDIR)/curl/lib -lcurl \
        -L$(EXTERNALDIR)/al/lib -lopenal \
        -L$(EXTERNALDIR)/ogg/lib -logg \
