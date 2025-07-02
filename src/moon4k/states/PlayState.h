@@ -8,6 +8,7 @@
 #include "../substates/PauseSubState.h"
 #include "../../engine/utils/Log.h"
 #include "../../engine/utils/Paths.h"
+#include "../../engine/graphics/VideoPlayer.h"
 #include "../game/Song.h"
 #include "../game/Note.h"
 #include "../game/GameConfig.h"
@@ -56,6 +57,7 @@ public:
     static PlayState* instance;
     static SwagSong SONG;
     static Sound* inst;
+    static VideoPlayer* videoPlayer;
     static Sound* voices;
     bool startingSong = false;
     bool startedCountdown = false;
@@ -76,6 +78,12 @@ public:
     const float HEALTH_LOSS = 0.04f;
     const float HEALTH_DRAIN = 0.005f;
     bool isDead = false;
+
+    bool loadVideo(const std::string& path);
+    void playVideo();
+    void pauseVideo();
+    void stopVideo();
+    void setVolume(int volume);
 
 private:
     std::string directSongName;
@@ -152,4 +160,6 @@ private:
     void updateHealth(float deltaTime);
     void gainHealth();
     void loseHealth();
+
+    std::string currentVideoPath;
 };

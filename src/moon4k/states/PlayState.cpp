@@ -21,6 +21,7 @@ PlayState* PlayState::instance = nullptr;
 SwagSong PlayState::SONG;
 Sound* PlayState::inst = nullptr;
 Sound* PlayState::voices = nullptr;
+VideoPlayer* PlayState::videoPlayer = nullptr;
 
 PlayState::PlayState(const std::string& songName, const std::string& difficulty)
     : SwagState()
@@ -77,6 +78,7 @@ PlayState::~PlayState() {
 
 void PlayState::create() {
     Engine* engine = Engine::getInstance();
+    videoPlayer = new VideoPlayer();
     generateSong(directSongName);
     startingSong = true;
 }
@@ -86,6 +88,7 @@ void PlayState::checkAndSetBackground() {
     std::string imagePath = "assets/charts/" + daSongswag + "/image.png";
     std::string imagePathAlt = "assets/charts/" + daSongswag + "/" + daSongswag + "-bg.png";
     std::string imagePathAlt2 = "assets/charts/" + daSongswag + "/" + daSongswag + ".png";
+    std::string videoPath = "assets/charts/" + daSongswag + "/video.mp4";
 
     songBG = std::make_unique<Sprite>();
     bool bgLoaded = false;
@@ -94,14 +97,17 @@ void PlayState::checkAndSetBackground() {
         songBG->loadTexture(imagePath);
         bgLoaded = true;
     }
-    
-    if (!bgLoaded && Paths::exists(imagePathAlt)) {
+    else if (!bgLoaded && Paths::exists(imagePathAlt)) {
         songBG->loadTexture(imagePathAlt);
         bgLoaded = true;
     }
-    
-    if (!bgLoaded && Paths::exists(imagePathAlt2)) {
+    else if (!bgLoaded && Paths::exists(imagePathAlt2)) {
         songBG->loadTexture(imagePathAlt2);
+        bgLoaded = true;
+    }
+    else if (!bgLoaded && Paths::exists(videoPath)) {
+        loadVideo(videoPath);
+        setVolume(0); // ehh.... idk if I should keep this at 0 or maybe 20?? 30?? 
         bgLoaded = true;
     }
 
@@ -136,6 +142,10 @@ void PlayState::update(float deltaTime) {
     Discord::GetInstance().SetDetails(buffer);
     Discord::GetInstance().Update();
     #endif
+
+    if (videoPlayer) {
+        videoPlayer->update();
+    }
 
     if (isLoading) {
         if (!unspawnNotes.empty() && inst != nullptr) {
@@ -457,6 +467,10 @@ void PlayState::startCountdown() {
 }
 
 void PlayState::render() {
+    if (videoPlayer) {
+        videoPlayer->render(SDLManager::getInstance().getRenderer());
+    }
+
     if (defaultBG && defaultBG->isVisible()) {
         defaultBG->render();
     }
@@ -603,6 +617,7 @@ void PlayState::generateNotes() {
 
     unspawnNotes = spawnNotes;
     Log::getInstance().info("Final unspawnNotes count: " + std::to_string(unspawnNotes.size()));
+    playVideo();
 }
 
 void PlayState::updateAccuracy() {
@@ -646,6 +661,9 @@ void PlayState::destroy() {
         voices->stop();
         delete voices;
         voices = nullptr;
+    }
+    if (videoPlayer) {
+        videoPlayer = nullptr;
     }
 }
 
@@ -965,4 +983,38 @@ void PlayState::endSong() {
     resultsSubState->setStats(score, misses, accuracy, totalNotesHit, curRank);    
     openSubState(resultsSubState);
     Log::getInstance().info("Song ended, showing results");
+}
+
+bool PlayState::loadVideo(const std::string& path) {
+    if (!videoPlayer) {
+        Log::getInstance().error("Video player not initialized");
+        return false;
+    }
+
+    currentVideoPath = path;
+    return videoPlayer->loadVideo(path);
+}
+
+void PlayState::playVideo() {
+    if (videoPlayer) {
+        videoPlayer->play();
+    }
+}
+
+void PlayState::pauseVideo() {
+    if (videoPlayer) {
+        videoPlayer->pause();
+    }
+}
+
+void PlayState::stopVideo() {
+    if (videoPlayer) {
+        videoPlayer->stop();
+    }
+}
+
+void PlayState::setVolume(int volume) {
+    if (videoPlayer) {
+        videoPlayer->setVolume(volume);
+    }
 }
