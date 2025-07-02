@@ -2,6 +2,7 @@
 #include "../core/SDLManager.h"
 #include "../utils/Log.h"
 #include "../core/Engine.h"
+#include <algorithm>
 
 void* VideoPlayer::lock(void* data, void** p_pixels) {
     VideoPlayer* player = static_cast<VideoPlayer*>(data);
@@ -25,9 +26,23 @@ void VideoPlayer::display(void* data, void* id) {
 VideoPlayer::VideoPlayer() 
     : vlcInstance(nullptr), mediaPlayer(nullptr), media(nullptr), playing(false),
       videoTexture(nullptr), mutex(nullptr), videoWidth(0), videoHeight(0), videoPixels(nullptr) {
+    
+    #ifdef _WIN32
+    const char* vlcArgs[] = {
+        "--aout=directsound",
+        "--no-video-title-show",
+        "--quiet"
+    };
+    vlcInstance = libvlc_new(3, vlcArgs);
+    #else
     vlcInstance = libvlc_new(0, nullptr);
+    #endif
+
     if (!vlcInstance) {
         Log::getInstance().error("Failed to initialize VLC instance");
+        if (const char* err = libvlc_errmsg()) {
+            Log::getInstance().error("VLC Error: " + std::string(err));
+        }
         return;
     }
     mutex = SDL_CreateMutex();
@@ -64,8 +79,14 @@ VideoPlayer::~VideoPlayer() {
 bool VideoPlayer::loadVideo(const std::string& path) {
     Log::getInstance().info("Attempting to load video: " + path);
     
-    FILE* file = fopen(path.c_str(), "rb");
+    FILE* file = nullptr;
+    #ifdef _WIN32
+    errno_t err = fopen_s(&file, path.c_str(), "rb");
+    if (err != 0 || !file) {
+    #else
+    file = fopen(path.c_str(), "rb");
     if (!file) {
+    #endif
         Log::getInstance().error("Video file not found: " + path);
         return false;
     }
@@ -219,7 +240,7 @@ void VideoPlayer::stop() {
 
 void VideoPlayer::setVolume(int volume) {
     if (mediaPlayer) {
-        volume = std::max(0, std::min(100, volume));
+        volume = (std::min)((std::max)(0, volume), 100);
         libvlc_audio_set_volume(mediaPlayer, volume);
     } else {
         Log::getInstance().error("Cannot set volume: no media loaded");
@@ -228,7 +249,7 @@ void VideoPlayer::setVolume(int volume) {
 
 void VideoPlayer::setPosition(float pos) {
     if (mediaPlayer) {
-        pos = std::max(0.0f, std::min(1.0f, pos));
+        pos = (std::min)((std::max)(0.0f, pos), 1.0f);
         libvlc_media_player_set_position(mediaPlayer, pos);
     } else {
         Log::getInstance().error("Cannot set position: no media loaded");
