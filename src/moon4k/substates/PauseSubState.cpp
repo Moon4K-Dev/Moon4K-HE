@@ -32,6 +32,9 @@ void PauseSubState::create() {
     if (PlayState::inst) {
         PlayState::inst->pause();
     }
+    if (PlayState::videoPlayer && PlayState::videoPlayer->isPlaying()) {
+        PlayState::videoPlayer->pause();
+    }
 }
 
 void PauseSubState::update(float deltaTime) {
@@ -43,6 +46,9 @@ void PauseSubState::update(float deltaTime) {
         SoundManager::getInstance().resumeMusic();
         if (PlayState::inst) {
             PlayState::inst->resume();
+        }
+        if (PlayState::videoPlayer) {
+            PlayState::videoPlayer->play();
         }
         getParentState()->closeSubState();
     }

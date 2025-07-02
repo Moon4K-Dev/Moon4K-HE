@@ -64,4 +64,5 @@ platforms/VisualC/Moon4K/x64/Debug/Moon4K.vcxproj.FileListAbsolute.txt
 /IGNORE_ME
 /platforms/VisualC/assets
 /Yotsuki
-/Yotsuki-GO
+/external/discord-rpc/src/build
+/external/discord-rpc/src/include

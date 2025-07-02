@@ -1,4 +1,4 @@
-#if !defined(__MINGW32__) && !defined(__SWITCH__) && defined(_WIN32)
+#if !defined(__MINGW32__) && !defined(__SWITCH__)
 
 #include "Discord.h"
 #include <time.h>
