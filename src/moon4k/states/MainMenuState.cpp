@@ -6,9 +6,12 @@
 #include "FreeplayState.h"
 #include "OnlineDLState.h"
 #include "OptionsState.h"
+#include "LoginState.h"
+#include "../network/UserSession.h"
 
 MainMenuState::MainMenuState() 
     : titleSprite(nullptr)
+    , usernameText(nullptr)
     , currentSelection(0) {
     menuTexts = {"Solo", "Browse Online Levels", "Settings", "Exit"};
 }
@@ -31,6 +34,17 @@ void MainMenuState::create() {
         50
     );
     engine->addSprite(titleSprite);
+
+    if (UserSession::IsLoggedIn()) {
+        usernameText = new Text();
+        usernameText->setFormat(Paths::font("vcr.ttf"), 20, 0xFFFFFFFF);
+        usernameText->setText("Logged in as: " + UserSession::GetUsername());
+        usernameText->setPosition(
+            10,
+            10
+        );
+        engine->addText(usernameText);
+    }
 
     float startY = engine->getWindowHeight() * 0.5f;
     for (size_t i = 0; i < menuTexts.size(); i++) {
@@ -67,6 +81,13 @@ void MainMenuState::update(float deltaTime) {
             changeSelection(1);
         }
 
+        if (Input::justPressed(SDL_SCANCODE_TAB)) {
+            if (!UserSession::IsLoggedIn()) {
+                startTransitionOut(0.5f);
+                Engine::getInstance()->switchState(new LoginState());
+            }
+        }
+
         if (Input::justPressed(SDL_SCANCODE_RETURN)) {
             switch (currentSelection) {
                 case 0: // single player
@@ -95,6 +116,10 @@ void MainMenuState::render() {
     if (titleSprite) {
         titleSprite->render();
     }
+
+    if (usernameText) {
+        usernameText->render();
+    }
     
     for (auto item : menuItems) {
         if (item) {
@@ -107,6 +132,7 @@ void MainMenuState::render() {
 
 void MainMenuState::destroy() {
     titleSprite = nullptr;
+    usernameText = nullptr;
     menuItems.clear();
 
     SwagState::destroy();

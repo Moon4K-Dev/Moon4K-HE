@@ -1,4 +1,8 @@
-# Moon4K - Hamburger Engine Port
+# Moon4K - Hamburger Engine Port - Custom Server Branch
+
+* Testing a hypothetical custom server for Moon4K (mainly for acc and profile shit, I am NOT planning on doing multiplayer as of right now!)
+
+* Also I will not be making a repo for Yotsuki (the server for Moon4K) until it's in a stage of development where it works at least half way (basically no repo until profile stuff)
 
 * 4-key rhythm game originally made by basically three people
 

@@ -12,6 +12,9 @@
 #include "engine/input/Input.h"
 #include "moon4k/states/SplashState.h"
 #include "engine/utils/Discord.h"
+#include "moon4k/network/NetworkManager.h"
+#include "moon4k/network/UserSession.h"
+#include "moon4k/backend/json.hpp"
 #endif
 
 int main(int argc, char** argv) {
@@ -28,6 +31,25 @@ int main(int argc, char** argv) {
     Discord::GetInstance().SetSmallImage("");
     Discord::GetInstance().SetSmallImageText("");    
     Discord::GetInstance().Update();
+
+    UserSession::Initialize();
+
+    if (!NetworkManager::GetInstance().Initialize()) {
+        Log::getInstance().error("Failed to connect to server: " + NetworkManager::GetInstance().GetLastError());
+        Log::getInstance().error("Game will start in offline mode");
+    }
+
+    if (UserSession::IsLoggedIn()) {
+        nlohmann::json j;
+        j["Username"] = UserSession::GetUsername();
+        std::string postData = j.dump();
+        std::string response;
+        if (NetworkManager::GetInstance().SendRequest("/login", postData, response)) {
+            Log::getInstance().info("Auto-login successful for: " + UserSession::GetUsername());
+        } else {
+            Log::getInstance().error("Auto-login failed for: " + UserSession::GetUsername() + ". Reason: " + NetworkManager::GetInstance().GetLastError());
+        }
+    }
     #endif
     
     int width = 1280;
@@ -59,6 +81,7 @@ int main(int argc, char** argv) {
     #elif defined(__SWITCH__)
     // nun
     #else
+    NetworkManager::GetInstance().Shutdown();
     Discord::GetInstance().Shutdown();
     #endif
     return 0;
